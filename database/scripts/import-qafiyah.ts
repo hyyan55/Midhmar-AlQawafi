@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import { finished } from 'node:stream/promises';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -128,6 +129,8 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
     poems: fs.createWriteStream(path.join(cleanedDir, 'poems.ndjson'), 'utf8'),
     rejected: fs.createWriteStream(path.join(cleanedDir, 'rejected.ndjson'), 'utf8'),
   };
+
+  const streamCompletion = Promise.all(Object.values(streams).map((stream) => finished(stream)));
 
   const rl = readline.createInterface({
     input: fs.createReadStream(dumpPath, { encoding: 'utf8' }),
@@ -262,11 +265,8 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
   }
 
   // Finish every output stream before attempting to read the NDJSON files.
-  await Promise.all(Object.values(streams).map((stream) => new Promise<void>((resolve, reject) => {
-    stream.once('finish', resolve);
-    stream.once('error', reject);
-    stream.end();
-  })));
+  for (const stream of Object.values(streams)) stream.end();
+  await streamCompletion;
 
   // If PostgreSQL credentials are configured, upsert cleaned records idempotently
   if (process.env.DATABASE_URL || process.env.PGHOST) {
@@ -384,7 +384,7 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
         `INSERT INTO poets (source_id, slug, name_ar, era_id, bio_ar)
          SELECT $1, $2, $3, e.id, $4
          FROM eras e WHERE e.source_id = $5
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar, bio_ar = EXCLUDED.bio_ar`,
+         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar, era_id = EXCLUDED.era_id, bio_ar = EXCLUDED.bio_ar`,
         [poet.sourceId, poet.slug, poet.nameAr, poet.bioAr, poet.eraSourceId]
       );
     }
@@ -436,6 +436,8 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
           [poemId, idx + 1, v.sadr, v.ajuz, normalizeArabicText(`${v.sadr} ${v.ajuz}`)]
         );
       }
+      // Remove stale trailing verses when a source poem has fewer verses on re-import.
+      await client.query('DELETE FROM poem_verses WHERE poem_id = $1 AND verse_order > $2', [poemId, poem.verses.length]);
     }
 
     await client.query('COMMIT');
