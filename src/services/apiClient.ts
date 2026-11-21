@@ -138,7 +138,7 @@ async function request<T>(
   if (!json) {
     throw new ApiClientError('BACKEND_UNAVAILABLE', BACKEND_UNAVAILABLE_MESSAGE, 503);
   }
-  if (!json.success) {
+  if (json.success === false) {
     throw new ApiClientError(json.error.code, json.error.message, response.status);
   }
 
