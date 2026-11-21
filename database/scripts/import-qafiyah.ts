@@ -17,6 +17,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import readline from 'node:readline';
+import { finished } from 'node:stream/promises';
 import { Pool } from 'pg';
 import dotenv from 'dotenv';
 
@@ -128,6 +129,8 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
     poems: fs.createWriteStream(path.join(cleanedDir, 'poems.ndjson'), 'utf8'),
     rejected: fs.createWriteStream(path.join(cleanedDir, 'rejected.ndjson'), 'utf8'),
   };
+
+  const streamCompletion = Promise.all(Object.values(streams).map((stream) => finished(stream)));
 
   const rl = readline.createInterface({
     input: fs.createReadStream(dumpPath, { encoding: 'utf8' }),
@@ -261,7 +264,9 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
     }
   }
 
-  Object.values(streams).forEach((s) => s.end());
+  // Finish every output stream before attempting to read the NDJSON files.
+  for (const stream of Object.values(streams)) stream.end();
+  await streamCompletion;
 
   // If PostgreSQL credentials are configured, upsert cleaned records idempotently
   if (process.env.DATABASE_URL || process.env.PGHOST) {
@@ -342,6 +347,30 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
       );
     }
 
+    const rhymes = await readNdjson<{ sourceId: number; letter: string; nameAr: string }>(
+      path.join(cleanedDir, 'rhymes.ndjson')
+    );
+    for (const rhyme of rhymes) {
+      await client.query(
+        `INSERT INTO rhymes (source_id, letter, name_ar)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (source_id) DO UPDATE SET letter = EXCLUDED.letter, name_ar = EXCLUDED.name_ar`,
+        [rhyme.sourceId, rhyme.letter, rhyme.nameAr]
+      );
+    }
+
+    const poemTypes = await readNdjson<{ sourceId: number; nameAr: string; slug: string }>(
+      path.join(cleanedDir, 'types.ndjson')
+    );
+    for (const type of poemTypes) {
+      await client.query(
+        `INSERT INTO poem_types (source_id, slug, name_ar)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar`,
+        [type.sourceId, type.slug, type.nameAr]
+      );
+    }
+
     const poets = await readNdjson<{
       sourceId: number;
       slug: string;
@@ -355,7 +384,7 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
         `INSERT INTO poets (source_id, slug, name_ar, era_id, bio_ar)
          SELECT $1, $2, $3, e.id, $4
          FROM eras e WHERE e.source_id = $5
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar, bio_ar = EXCLUDED.bio_ar`,
+         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar, era_id = EXCLUDED.era_id, bio_ar = EXCLUDED.bio_ar`,
         [poet.sourceId, poet.slug, poet.nameAr, poet.bioAr, poet.eraSourceId]
       );
     }
@@ -366,20 +395,32 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
       poetSourceId: number;
       meterSourceId: number | null;
       themeSourceId: number | null;
+      rhymeSourceId: number | null;
+      typeSourceId: number | null;
       verses: Array<{ sadr: string; ajuz: string }>;
     }>(path.join(cleanedDir, 'poems.ndjson'));
 
     for (const poem of poems) {
       const poemRes = await client.query<{ id: number }>(
-        `INSERT INTO poems (source_id, title_ar, poet_id, era_id, meter_id, theme_id, verse_count)
+        `INSERT INTO poems (source_id, title_ar, poet_id, era_id, meter_id, theme_id, rhyme_id, poem_type_id, verse_count)
          SELECT $1, $2, p.id, p.era_id,
            (SELECT id FROM meters WHERE source_id = $4 LIMIT 1),
            (SELECT id FROM themes WHERE source_id = $5 LIMIT 1),
-           $6
+           (SELECT id FROM rhymes WHERE source_id = $6 LIMIT 1),
+           (SELECT id FROM poem_types WHERE source_id = $7 LIMIT 1),
+           $8
          FROM poets p WHERE p.source_id = $3
-         ON CONFLICT (source_id) DO UPDATE SET title_ar = EXCLUDED.title_ar, verse_count = EXCLUDED.verse_count
+         ON CONFLICT (source_id) DO UPDATE SET
+           title_ar = EXCLUDED.title_ar,
+           poet_id = EXCLUDED.poet_id,
+           era_id = EXCLUDED.era_id,
+           meter_id = EXCLUDED.meter_id,
+           theme_id = EXCLUDED.theme_id,
+           rhyme_id = EXCLUDED.rhyme_id,
+           poem_type_id = EXCLUDED.poem_type_id,
+           verse_count = EXCLUDED.verse_count
          RETURNING id`,
-        [poem.sourceId, poem.titleAr, poem.poetSourceId, poem.meterSourceId, poem.themeSourceId, poem.verses.length]
+        [poem.sourceId, poem.titleAr, poem.poetSourceId, poem.meterSourceId, poem.themeSourceId, poem.rhymeSourceId, poem.typeSourceId, poem.verses.length]
       );
 
       const poemId = poemRes.rows[0]?.id;
@@ -395,6 +436,8 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
           [poemId, idx + 1, v.sadr, v.ajuz, normalizeArabicText(`${v.sadr} ${v.ajuz}`)]
         );
       }
+      // Remove stale trailing verses when a source poem has fewer verses on re-import.
+      await client.query('DELETE FROM poem_verses WHERE poem_id = $1 AND verse_order > $2', [poemId, poem.verses.length]);
     }
 
     await client.query('COMMIT');
