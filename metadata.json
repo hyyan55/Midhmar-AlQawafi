@@ -1,0 +1,6 @@
+{
+  "name": "مِضمار القوافي - منصة تحدي الشعر العربي",
+  "description": "منصة تفاعلية لتحديات الشعر العربي واكتشاف روائع الشعراء والعصور الأدبية والبحور الشعرية.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

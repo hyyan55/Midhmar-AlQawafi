@@ -1,0 +1,39 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    font-family: "IBM Plex Sans Arabic", system-ui, -apple-system, sans-serif;
+    background-color: #f8f6f1;
+    color: #181a1b;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html.dark {
+    background-color: #0f1419;
+    color: #f3efe6;
+  }
+
+  body {
+    min-height: 100dvh;
+    margin: 0;
+    overflow-x: hidden;
+  }
+}
+
+.font-poetry {
+  font-family: "Amiri", Georgia, serif;
+}
+
+.font-mono-tabular {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}

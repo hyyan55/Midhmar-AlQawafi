@@ -1,0 +1,28 @@
+node_modules/
+build/
+dist/
+dist-server/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Local database files and raw Qafiyah SQL dumps
+data/
+*.sqlite
+*.sqlite3
+*.db
+*.sql.gz
+*.dump
+qafiyah_dump.sql
+database/raw/
+
+# Capacitor & Android build artifacts
+android/
+ios/
+.capacitor/
+*.apk
+*.aab
+*.keystore
+*.jks
