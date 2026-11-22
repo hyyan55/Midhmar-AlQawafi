@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { UserCredential } from 'firebase/auth';
 import {
   DEFAULT_APP_NAME,
   GAME_MODES_META,
@@ -656,12 +657,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = useCallback(
     async (email: string, password: string) => {
-      let credential;
+      let credential: UserCredential;
       try {
         credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
       } catch (error) {
         const code = (error as { code?: string })?.code;
-        if (code !== 'auth/user-not-found') {
+        if (code !== 'auth/user-not-found' && code !== 'auth/invalid-credential') {
           if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
             throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
           }
@@ -681,7 +682,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             throw upgradeError;
           }
           await firebaseSignOut(firebaseAuth).catch(() => undefined);
-          throw new Error('تعذر ترقية الحساب السابق تلقائياً. تأكد من البريد وكلمة المرور أو تواصل مع الدعم.');
+          if ((upgradeError as { code?: string })?.code === 'auth/email-already-in-use') {
+            throw new Error('كلمة المرور غير صحيحة.');
+          }
+          throw new Error('لم نعثر على حساب سابق بهذا البريد. إذا كنت مستخدماً جديداً، اختر «حساب جديد».');
         }
       }
 
@@ -711,7 +715,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       password: string;
       migrateGuestProgress: boolean;
     }) => {
-      let credential;
+      let credential: UserCredential;
       try {
         credential = await createUserWithEmailAndPassword(firebaseAuth, payload.email.trim(), payload.password);
       } catch (error) {
