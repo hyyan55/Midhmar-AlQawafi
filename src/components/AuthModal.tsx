@@ -198,13 +198,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 placeholder="reader@example.com"
                 className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
               />
-              <datalist id="midhmar-email-domains">
-                <option value="@gmail.com" />
-                <option value="@outlook.com" />
-                <option value="@hotmail.com" />
-                <option value="@yahoo.com" />
-                <option value="@icloud.com" />
-              </datalist>
+              <div className="flex flex-wrap items-center gap-2 mt-2" aria-label="اقتراحات نطاق البريد">
+                <span className="text-[11px] text-[#697586] dark:text-[#C0CAD6]">اقتراحات:</span>
+                {['gmail.com', 'outlook.com', 'hotmail.com', 'yahoo.com', 'icloud.com'].map((domain) => (
+                  <button
+                    key={domain}
+                    type="button"
+                    onClick={() => setEmail(`${email.split('@')[0]}@${domain}`)}
+                    className="px-2 py-1 rounded-lg bg-[#EAE2D2] dark:bg-[#14243B] text-[11px] font-medium text-[#14243B] dark:text-[#C6A15B] hover:ring-1 hover:ring-[#C6A15B]"
+                  >
+                    @{domain}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
