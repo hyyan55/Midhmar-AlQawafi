@@ -149,23 +149,29 @@ export async function generateQuestionsForMode(
   const shuffledVerses = seededShuffle(candidates, params.seed);
   const selectedVerses: VerseJoinRow[] = [];
   const usedPoems = new Set<number>();
+  const usedPoets = new Set<number>();
 
+  // Prefer one question per poet in every round. This prevents the same poet
+  // from dominating a short challenge even when the source pool has many verses.
   for (const verse of shuffledVerses) {
     if (selectedVerses.length >= targetCount) break;
-    if (!usedPoems.has(Number(verse.poem_id)) || selectedVerses.length + (shuffledVerses.length - selectedVerses.length) <= targetCount) {
-      selectedVerses.push(verse);
-      usedPoems.add(Number(verse.poem_id));
-    }
+    const poetId = Number(verse.poet_id);
+    const poemId = Number(verse.poem_id);
+    if (usedPoets.has(poetId) || usedPoems.has(poemId)) continue;
+    selectedVerses.push(verse);
+    usedPoets.add(poetId);
+    usedPoems.add(poemId);
   }
 
-  // Ensure exact target count if poems were fewer than targetCount
+  // If the selected era/source pool has fewer distinct poets than requested,
+  // fill remaining slots with different poems before allowing any poet repeat.
   if (selectedVerses.length < targetCount) {
-    const selectedIds = new Set(selectedVerses.map((v) => v.verse_id));
-    for (const v of shuffledVerses) {
+    for (const verse of shuffledVerses) {
       if (selectedVerses.length >= targetCount) break;
-      if (!selectedIds.has(v.verse_id)) {
-        selectedVerses.push(v);
-      }
+      const poemId = Number(verse.poem_id);
+      if (usedPoems.has(poemId)) continue;
+      selectedVerses.push(verse);
+      usedPoems.add(poemId);
     }
   }
 
