@@ -28,7 +28,9 @@ const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 export const firebaseAuth = getAuth(app);
 const firebaseStorage = getStorage(app);
 
-export async function uploadProfilePhoto(file: File, userId: string): Promise<string> {
+export async function uploadProfilePhoto(file: File): Promise<string> {
+  const currentUser = firebaseAuth.currentUser;
+  if (!currentUser) throw new Error('يرجى تسجيل الدخول مجدداً قبل رفع الصورة.');
   if (!file.type.startsWith('image/')) throw new Error('يرجى اختيار ملف صورة صالح.');
   if (file.size > 8 * 1024 * 1024) throw new Error('حجم الصورة يجب ألا يتجاوز 8 ميجابايت.');
   const image = await createImageBitmap(file);
@@ -43,7 +45,7 @@ export async function uploadProfilePhoto(file: File, userId: string): Promise<st
   const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(
     (value) => value ? resolve(value) : reject(new Error('تعذر ضغط الصورة.')), 'image/jpeg', 0.82
   ));
-  const photoRef = ref(firebaseStorage, `users/${userId}/avatar.jpg`);
+  const photoRef = ref(firebaseStorage, `users/${currentUser.uid}/avatar.jpg`);
   await uploadBytes(photoRef, blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=3600' });
   return getDownloadURL(photoRef);
 }
