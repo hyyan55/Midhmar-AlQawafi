@@ -3,11 +3,11 @@
 
 :root {
   color-scheme: light;
-  --midhmar-navy: #102448;
-  --midhmar-navy-deep: #0D1D39;
-  --midhmar-gold: #E0B84F;
-  --midhmar-cream: #F7F3E8;
-  --midhmar-paper: #EEE6D4;
+  --midhmar-navy: #14243B;
+  --midhmar-navy-deep: #0C192B;
+  --midhmar-gold: #C6A15B;
+  --midhmar-cream: #F5F1E8;
+  --midhmar-paper: #EAE2D2;
 }
 
 @layer base {
@@ -30,6 +30,15 @@
     min-height: 100dvh;
     margin: 0;
     overflow-x: hidden;
+    text-rendering: optimizeLegibility;
+  }
+
+  img {
+    max-width: 100%;
+  }
+
+  img[decoding="async"] {
+    content-visibility: auto;
   }
 
   button, a {
@@ -42,8 +51,8 @@
   }
 
   ::selection {
-    background: #E0B84F55;
-    color: #102448;
+    background: #C6A15B55;
+    color: #14243B;
   }
 }
 
