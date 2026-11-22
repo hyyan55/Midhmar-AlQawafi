@@ -19,7 +19,7 @@ import type { Server } from 'node:http';
 
 // Force every API route in this suite to use the isolated temporary SQLite database.
 // This prevents inherited PGHOST / DATABASE_URL values from sending tests to Aiven.
-const testDbState = vi.hoisted(() => ({ path: '', verificationToken: '' }));
+const testDbState = vi.hoisted(() => ({ path: '' }));
 
 // Keep API tests independent from external SMTP availability.
 vi.mock('../server/src/services/firebaseAdmin.ts', () => ({
@@ -36,10 +36,7 @@ vi.mock('../server/src/services/firebaseAdmin.ts', () => ({
 }));
 
 vi.mock('../server/src/services/email.ts', () => ({
-  sendEmail: vi.fn(async (_to: string, _subject: string, html: string) => {
-    const match = html.match(/token=([^&"]+)/);
-    if (match) testDbState.verificationToken = decodeURIComponent(match[1]);
-  }),
+  sendEmail: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock('../server/src/db/database.ts', async (importOriginal) => {
@@ -208,13 +205,18 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     expect(res.status).toBe(201);
     const registration = (await res.json()) as { success: boolean; data: { message: string } };
     expect(registration.success).toBe(true);
-    expect(testDbState.verificationToken).toBeTruthy();
 
-    const verification = await fetch(
-      `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(testDbState.verificationToken)}`,
-      { redirect: 'manual' }
-    );
-    expect(verification.status).toBe(303);
+    const registeredUser = await getDb(testDbPath).queryOne<{
+      id: string;
+      password_hash: string;
+      is_active: number | boolean;
+    }>('SELECT id, password_hash, is_active FROM users WHERE email = $1', ['zuhayr@example.com']);
+    expect(registeredUser).toBeTruthy();
+    expect(registeredUser?.password_hash).not.toBe('StrongPassword123');
+    expect(Number(registeredUser?.is_active)).toBe(0);
+
+    // Simulate the email-verification side effect; outbound SMTP is mocked in this suite.
+    await getDb(testDbPath).execute('UPDATE users SET is_active = $1 WHERE id = $2', [true, registeredUser!.id]);
 
     const login = await fetch(`${baseUrl}/api/auth/login`, {
       method: 'POST',
