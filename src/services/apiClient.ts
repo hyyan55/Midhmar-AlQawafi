@@ -334,6 +334,7 @@ export const apiClient = {
     displayName?: string;
     username?: string;
     avatarId?: string;
+    avatarUrl?: string | null;
     bio?: string;
     timezone?: string;
   }) {
