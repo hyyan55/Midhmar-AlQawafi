@@ -51,13 +51,14 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children, onOpenAuthMo
       {!isPlaying && (
         <header className="sticky top-0 z-30 h-14 md:h-16 bg-[#F7F3E8]/90 dark:bg-[#102448]/90 backdrop-blur-md border-b border-[#E8DEC8] dark:border-[#2B4164]">
           <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-8">
-            {/* Zone 1: Single text element wordmark */}
+            {/* Brand mark and wordmark */}
             <button
               type="button"
               onClick={() => navigate('home')}
-              className="text-xl font-bold font-poetry tracking-tight text-[#14284B] dark:text-[#E0B84F] whitespace-nowrap shrink-0 min-h-[44px] flex items-center focus-visible:outline-2 focus-visible:outline-[#14284B]"
+              className="flex items-center gap-2.5 text-xl font-bold font-poetry tracking-tight text-[#14284B] dark:text-[#F7F3E8] whitespace-nowrap shrink-0 min-h-[44px] focus-visible:outline-2 focus-visible:outline-[#E0B84F]"
             >
-              {appName}
+              <img src="/brand-mark.svg" alt="" className="w-9 h-9 rounded-lg" />
+              <span>{appName}</span>
             </button>
 
             {/* Zone 2: Clean single-line text navigation links */}
