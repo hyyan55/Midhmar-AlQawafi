@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Eye, EyeOff, X } from 'lucide-react';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
@@ -18,7 +18,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const { login, register, guest, backendAvailable } = useApp();
   const [mode, setMode] = useState<'login' | 'register' | 'forgot' | 'reset'>(initialMode);
 
-  const [email, setEmail] = useState('');
+  const emailRef = useRef('');
+  const emailInputRef = useRef<HTMLInputElement>(null);
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -50,20 +51,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
     try {
       if (mode === 'login') {
-        await login(email, password);
+        await login(emailRef.current, password);
         onClose();
       } else if (mode === 'register') {
         await register({
           displayName,
           username,
-          email,
+          email: emailRef.current,
           password,
           migrateGuestProgress: migrateGuest,
         });
         setInfoMessage('تم إنشاء الحساب. افتح رسالة التأكيد المرسلة إلى بريدك لتفعيل الحساب، ثم سجّل الدخول.');
         setMode('login');
       } else if (mode === 'forgot') {
-        await sendPasswordResetEmail(firebaseAuth, email.trim());
+        await sendPasswordResetEmail(firebaseAuth, emailRef.current.trim());
         setInfoMessage('إذا كان البريد مسجلاً، فستصلك رسالة من Firebase لإعادة تعيين كلمة المرور.');
         setMode('login');
       } else if (mode === 'reset') {
@@ -192,8 +193,9 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 autoComplete="email"
                 required
                 dir="ltr"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                ref={emailInputRef}
+                defaultValue=""
+                onChange={(e) => { emailRef.current = e.target.value; }}
                 placeholder="reader@example.com"
                 className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
               />
@@ -203,7 +205,16 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <button
                     key={domain}
                     type="button"
-                    onClick={() => setEmail(`${email.split('@')[0]}@${domain}`)}
+                    onClick={() => {
+                      const input = emailInputRef.current;
+                      if (!input) return;
+                      const localPart = input.value.split('@')[0];
+                      const nextEmail = `${localPart}@${domain}`;
+                      input.value = nextEmail;
+                      emailRef.current = nextEmail;
+                      input.focus();
+                      input.setSelectionRange(nextEmail.length, nextEmail.length);
+                    }}
                     className="px-2 py-1 rounded-lg bg-[#EAE2D2] dark:bg-[#14243B] text-[11px] font-medium text-[#14243B] dark:text-[#C6A15B] hover:ring-1 hover:ring-[#C6A15B]"
                   >
                     @{domain}
