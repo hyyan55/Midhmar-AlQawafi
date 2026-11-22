@@ -1,4 +1,5 @@
 import tls from 'node:tls';
+import { lookup } from 'node:dns/promises';
 import { env } from '../config/env.ts';
 
 function readReply(socket: tls.TLSSocket): Promise<string> {
@@ -31,7 +32,9 @@ function encodeHeader(value: string) {
 }
 export async function sendEmail(to: string, subject: string, html: string): Promise<void> {
   if (!env.smtpUser || !env.smtpPass || !env.emailFrom) throw new Error('SMTP is not configured');
-  const socket = tls.connect({ host: env.smtpHost, port: env.smtpPort, servername: env.smtpHost });
+  // Resolve SMTP host to IPv4 because this deployment environment has no usable IPv6 route.
+  const { address } = await lookup(env.smtpHost, { family: 4 });
+  const socket = tls.connect({ host: address, port: env.smtpPort, servername: env.smtpHost });
   try {
     await new Promise<void>((resolve, reject) => {
       socket.once('secureConnect', resolve);
