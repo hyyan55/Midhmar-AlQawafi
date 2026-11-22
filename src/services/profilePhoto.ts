@@ -50,3 +50,25 @@ export async function uploadProfilePhoto(file: File): Promise<string> {
   }
   return payload.data.secureUrl;
 }
+
+
+/** Adds Cloudinary's automatic format, quality and responsive-width delivery transforms. */
+export function getOptimizedImageUrl(url: string | null | undefined, width = 512): string {
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    if (!parsed.hostname.endsWith('cloudinary.com')) return url;
+    const marker = '/image/upload/';
+    const markerIndex = parsed.pathname.indexOf(marker);
+    if (markerIndex < 0) return url;
+
+    const prefix = parsed.pathname.slice(0, markerIndex + marker.length);
+    const remainder = parsed.pathname.slice(markerIndex + marker.length);
+    const segments = remainder.split('/');
+    if (/^(?:f_|q_|w_|h_|c_|fl_|dpr_)/.test(segments[0] || '')) segments.shift();
+    parsed.pathname = prefix + `f_auto,q_auto,w_${Math.max(64, Math.min(1600, Math.round(width)))},c_limit/` + segments.join('/');
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
