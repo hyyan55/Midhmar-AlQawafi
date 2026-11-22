@@ -338,8 +338,7 @@ export const LibraryScreen: React.FC = () => {
                 src={getAvatarImageUrl(poet.avatarKey || 'scholar_astrolabe')}
                 alt={poet.nameAr}
                 referrerPolicy="no-referrer"
-                className="w-12 h-12 rounded-xl object-cover shrink-0"
-              />
+                className="w-12 h-12 rounded-xl object-cover shrink-0" loading="lazy" decoding="async" />
               <div className="space-y-1 min-w-0">
                 <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
                   {poet.eraNameAr}
