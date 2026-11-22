@@ -1,3 +1,7 @@
+import classicalDesertImage from '../assets/images/era_classical_desert_1795291813077.jpg';
+import andalusianCourtyardImage from '../assets/images/era_andalusian_courtyard_1795291814085.jpg';
+import scholarEmblemImage from '../assets/images/avatar_scholar_emblem_1795291814575.jpg';
+
 let sharedAudioCtx: AudioContext | null = null;
 
 function getAudioContext(): AudioContext | null {
@@ -96,10 +100,10 @@ export function formatDurationAr(seconds: number): string {
 export function getAvatarImageUrl(avatarId: string): string {
   switch (avatarId) {
     case 'classical_desert':
-      return '/src/assets/images/era_classical_desert_1795291813077.jpg';
+      return classicalDesertImage;
     case 'andalus_arch':
-      return '/src/assets/images/era_andalusian_courtyard_1795291814085.jpg';
+      return andalusianCourtyardImage;
     default:
-      return '/src/assets/images/avatar_scholar_emblem_1795291814575.jpg';
+      return scholarEmblemImage;
   }
 }
