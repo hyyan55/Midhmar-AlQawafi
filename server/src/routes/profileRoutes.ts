@@ -19,15 +19,17 @@ router.post('/avatar', requireAuth, asyncHandler(async (req: AuthenticatedReques
   if (!match || image.length > 900_000) throw new AppError(400, 'INVALID_AVATAR', 'الصورة غير صالحة أو حجمها أكبر من المسموح.');
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
-  const folder = 'midhmar/avatars';
+  // Dynamic-folder Cloudinary environments use asset_folder for Media Library
+  // placement; folder is legacy and can cause unexpected public-ID paths.
+  const assetFolder = 'midhmar/avatars';
   const publicId = req.authUser!.userId;
-  const signedParams = `folder=${folder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}`;
+  const signedParams = `asset_folder=${assetFolder}&overwrite=true&public_id=${publicId}&timestamp=${timestamp}`;
   const signature = createHash('sha1').update(signedParams + cloudinaryApiSecret).digest('hex');
   const form = new FormData();
   form.set('file', image);
   form.set('api_key', cloudinaryApiKey);
   form.set('timestamp', timestamp);
-  form.set('folder', folder);
+  form.set('asset_folder', assetFolder);
   form.set('public_id', publicId);
   form.set('overwrite', 'true');
   form.set('signature', signature);
@@ -35,8 +37,17 @@ router.post('/avatar', requireAuth, asyncHandler(async (req: AuthenticatedReques
   const cloudinaryResponse = await fetch(`https://api.cloudinary.com/v1_1/${cloudinaryCloudName}/image/upload`, {
     method: 'POST', body: form, signal: AbortSignal.timeout(20_000),
   });
-  const result = await cloudinaryResponse.json() as { secure_url?: string };
-  if (!cloudinaryResponse.ok || !result.secure_url) throw new AppError(502, 'AVATAR_UPLOAD_FAILED', 'فشل تخزين الصورة. حاول مرة أخرى.');
+  const result = await cloudinaryResponse.json().catch(() => null) as
+    | { secure_url?: string; error?: { message?: string } }
+    | null;
+  if (!cloudinaryResponse.ok || !result?.secure_url) {
+    // Keep provider diagnostics in server logs only; never expose credentials.
+    console.error('[avatar-upload] Cloudinary rejected upload', {
+      status: cloudinaryResponse.status,
+      message: result?.error?.message || 'Unknown Cloudinary upload error',
+    });
+    throw new AppError(502, 'AVATAR_UPLOAD_FAILED', 'تعذّر تخزين الصورة حالياً. تحقّق من إعدادات التخزين ثم حاول مجدداً.');
+  }
   res.json({ success: true, data: { secureUrl: result.secure_url } });
 }));
 
