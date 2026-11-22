@@ -8,15 +8,20 @@
   --midhmar-gold: #C6A15B;
   --midhmar-cream: #F5F1E8;
   --midhmar-paper: #EAE2D2;
+  --midhmar-ink: #1C2A3B;
+  --midhmar-muted: #697586;
+  --midhmar-border: #E2D8C5;
+  --midhmar-gold-muted: #A98543;
+  --midhmar-night-surface: #1B2D47;
 }
 
 @layer base {
   html {
     font-family: "IBM Plex Sans Arabic", system-ui, -apple-system, sans-serif;
     background-color: var(--midhmar-cream);
-    color: #17233A;
+    color: var(--midhmar-ink);
     -webkit-tap-highlight-color: transparent;
-    scrollbar-color: #C9B77E var(--midhmar-cream);
+    scrollbar-color: var(--midhmar-gold) var(--midhmar-cream);
   }
 
   html.dark {
