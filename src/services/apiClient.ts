@@ -191,7 +191,7 @@ export const apiClient = {
     authConfigured: boolean;
   }> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 1800);
+    const timer = setTimeout(() => controller.abort(), 5000);
     try {
       const response = await fetch(`${API_BASE}/api/health`, {
         method: 'GET',

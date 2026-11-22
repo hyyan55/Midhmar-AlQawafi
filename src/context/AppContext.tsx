@@ -18,7 +18,7 @@ import {
   type SessionResult,
   type ThemeMode,
 } from '../../packages/shared/src/index.ts';
-import { apiClient, setAccessToken } from '../services/apiClient.ts';
+import { ApiClientError, apiClient, setAccessToken } from '../services/apiClient.ts';
 import {
   createUserWithEmailAndPassword,
   firebaseAuth,
@@ -333,7 +333,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         return;
       }
 
-      if (isOnline && backendAvailable) {
+      // Recheck the API when the initial health check failed (for example,
+      // while a free hosting instance was waking up from sleep).
+      let canUseBackend = isOnline && backendAvailable;
+      if (isOnline && !canUseBackend) {
+        const health = await apiClient.checkBackendHealth();
+        canUseBackend = health.available;
+        setBackendAvailable(health.available);
+        setBackendChecked(true);
+      }
+
+      let backendError: string | null = null;
+      if (canUseBackend) {
         try {
           const started = await apiClient.startGameSession({
             mode,
@@ -341,6 +352,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             questionCount: GAME_MODES_META[mode].questionCount,
             timezone: tz,
           });
+          if (started.questions.length === 0) {
+            throw new ApiClientError(
+              'NO_QUESTIONS_AVAILABLE',
+              'لا توجد أبيات كافية لتوليد هذا التحدي حالياً. يرجى المحاولة لاحقاً.',
+              503
+            );
+          }
           setActiveGame({
             sessionId: started.sessionId,
             mode: started.mode,
@@ -363,13 +381,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
             showNotice('info', msg);
             return;
           }
+          backendError = msg;
+          if (err instanceof ApiClientError && err.code === 'BACKEND_UNAVAILABLE') {
+            setBackendAvailable(false);
+          }
         }
       }
 
       if (!offlinePack || offlinePack.questionPacks.length === 0) {
         showNotice(
-          'info',
-          'يعمل التطبيق حالياً في وضع معاينة الواجهة دون خادم خلفي متصل. شغّل خادم الواجهة البرمجية (npm run dev:api) لتوليد الأسئلة من قاعدة البيانات.'
+          'error',
+          backendError ||
+            'الخادم الخلفي غير متاح حالياً. تحقق من اتصال الإنترنت ثم أعد المحاولة.'
         );
         return;
       }
@@ -409,6 +432,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (mode === 'daily_challenge' && guest.dailyCompletedDates.includes(today)) {
         showNotice('info', 'لقد أتممت التحدي اليومي لهذا اليوم.');
         return;
+      }
+
+      if (backendError || !canUseBackend) {
+        showNotice(
+          'info',
+          backendError
+            ? 'تعذر الاتصال بالخادم؛ بدأ التحدي باستخدام البيانات المحفوظة دون اتصال.'
+            : 'الخادم غير متاح؛ بدأ التحدي باستخدام البيانات المحفوظة دون اتصال.'
+        );
       }
 
       setActiveGame({

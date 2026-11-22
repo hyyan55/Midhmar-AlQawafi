@@ -56,6 +56,48 @@ export async function generateQuestionsForMode(
   const meta = GAME_MODES_META[params.mode];
   const targetCount = params.count ?? meta.questionCount;
 
+  // Never load the full poetry corpus into the API process. The production
+  // database may contain close to a million verses, which exceeds the memory
+  // available on the Render free instance. Read a bounded window instead.
+  // Apply the selected era in SQL before limiting the result set. Filtering
+  // after LIMIT could return no verses (or verses from another era) for a
+  // perfectly valid era whose rows are outside the randomly selected window.
+  let eraFilter = params.eraId ? 'WHERE p.era_id = $1' : '';
+  let countParams: number[] = params.eraId ? [params.eraId] : [];
+  let verseCountRow = await db.queryOne<{ total: number | string }>(
+    `SELECT COUNT(*) AS total
+     FROM poem_verses pv
+     JOIN poems p ON pv.poem_id = p.id
+     JOIN poets po ON p.poet_id = po.id
+     JOIN eras e ON p.era_id = e.id
+     ${eraFilter}`,
+    countParams
+  );
+
+  // Preserve the previous fallback behavior for an unknown/empty era ID.
+  if (params.eraId && Number(verseCountRow?.total ?? 0) === 0) {
+    eraFilter = '';
+    countParams = [];
+    verseCountRow = await db.queryOne<{ total: number | string }>(
+      `SELECT COUNT(*) AS total
+       FROM poem_verses pv
+       JOIN poems p ON pv.poem_id = p.id
+       JOIN poets po ON p.poet_id = po.id
+       JOIN eras e ON p.era_id = e.id`
+    );
+  }
+
+  const totalVerses = Number(verseCountRow?.total ?? 0);
+  const sampleLimit = Math.min(totalVerses, 500);
+  const maxOffset = Math.max(0, totalVerses - sampleLimit);
+  const sampleSeed = params.seed ?? crypto.randomUUID();
+  const sampleOffset = maxOffset > 0 ? deterministicHash(sampleSeed) % (maxOffset + 1) : 0;
+  const limitPlaceholder = params.eraId && eraFilter ? '$2' : '$1';
+  const offsetPlaceholder = params.eraId && eraFilter ? '$3' : '$2';
+  const verseQueryParams = params.eraId && eraFilter
+    ? [params.eraId, sampleLimit, sampleOffset]
+    : [sampleLimit, sampleOffset];
+
   const allVerses = await db.query<VerseJoinRow>(
     `SELECT
        pv.id AS verse_id,
@@ -75,7 +117,10 @@ export async function generateQuestionsForMode(
      JOIN poets po ON p.poet_id = po.id
      JOIN eras e ON p.era_id = e.id
      LEFT JOIN meters m ON p.meter_id = m.id
-     ORDER BY pv.id ASC`
+     ${eraFilter}
+     ORDER BY pv.id ASC
+     LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
+    verseQueryParams
   );
 
   const allPoets = await db.query<{

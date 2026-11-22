@@ -145,6 +145,30 @@ describe('Authentic Poetry Question Engine', () => {
     }
   });
 
+  it('keeps every generated verse inside the requested literary era', async () => {
+    const db = getDb(testDbPath);
+    const era = await db.queryOne<{ id: number; name_ar: string; total: number }>(
+      `SELECT e.id, e.name_ar, COUNT(pv.id) AS total
+       FROM eras e
+       JOIN poems p ON p.era_id = e.id
+       JOIN poem_verses pv ON pv.poem_id = p.id
+       GROUP BY e.id, e.name_ar
+       HAVING COUNT(pv.id) >= 5
+       ORDER BY total DESC
+       LIMIT 1`
+    );
+
+    expect(era).toBeTruthy();
+    const questions = await generateQuestionsForMode(db, {
+      mode: 'who_said',
+      count: 5,
+      eraId: Number(era!.id),
+    });
+
+    expect(questions).toHaveLength(5);
+    expect(questions.every((question) => question.eraNameAr === era!.name_ar)).toBe(true);
+  });
+
   it('generates deterministic daily challenge questions for a given calendar date', async () => {
     const db = getDb(testDbPath);
     const first = await generateQuestionsForMode(db, {
