@@ -674,16 +674,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         timezone: getUserTimezone(),
         guestMigration: payload.migrateGuestProgress && guest.stats.gamesPlayed > 0 ? guest : undefined,
       });
-      setUser(data.user);
-      setSettings(data.user.settings);
-      applyThemeClass(data.user.settings.theme);
-      if (payload.migrateGuestProgress) {
-        const freshGuest = await offlineDb.resetGuestProgress();
-        setGuest(freshGuest);
-      }
-      showNotice('success', 'تم إنشاء حسابك وحفظ تقدمك بنجاح.');
+      showNotice('success', data.message);
     },
-    [applyThemeClass, guest, showNotice]
+    [guest, showNotice]
   );
 
   const logout = useCallback(async () => {
