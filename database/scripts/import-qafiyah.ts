@@ -375,12 +375,12 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
     for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
       path.join(cleanedDir, 'eras.ndjson'), 500
     )) {
-      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr, item.slug]), [
-        'integer', 'text', 'text', 'text',
+      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr, item.slug, '']), [
+        'integer', 'text', 'text', 'text', 'text',
       ]);
       await client.query(
         [
-          'INSERT INTO eras (source_id, slug, name_ar, name_en)',
+          'INSERT INTO eras (source_id, slug, name_ar, name_en, period_label)',
           'VALUES ' + values.clause,
           'ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar',
         ].join('\n'),
