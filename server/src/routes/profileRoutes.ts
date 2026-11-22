@@ -15,7 +15,7 @@ router.post('/avatar', requireAuth, asyncHandler(async (req: AuthenticatedReques
     throw new AppError(503, 'AVATAR_STORAGE_NOT_CONFIGURED', 'رفع الصور غير مفعّل بعد على الخادم.');
   }
   const image = typeof req.body?.image === 'string' ? req.body.image : '';
-  const match = image.match(/^data:image\\/jpeg;base64,([A-Za-z0-9+/=]+)$/);
+  const match = image.startsWith('data:image/jpeg;base64,') && /^[A-Za-z0-9+/=]+$/.test(image.slice('data:image/jpeg;base64,'.length));
   if (!match || image.length > 900_000) throw new AppError(400, 'INVALID_AVATAR', 'الصورة غير صالحة أو حجمها أكبر من المسموح.');
 
   const timestamp = Math.floor(Date.now() / 1000).toString();
