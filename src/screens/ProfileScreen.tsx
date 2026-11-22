@@ -11,7 +11,7 @@ import {
 } from '../../packages/shared/src/index.ts';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
-import { uploadProfilePhoto } from '../services/profilePhoto.ts';
+import { getOptimizedImageUrl, uploadProfilePhoto } from '../services/profilePhoto.ts';
 import { offlineDb } from '../storage/offlineDb.ts';
 import { formatDurationAr, getAvatarImageUrl } from '../utils/feedback.ts';
 
@@ -137,7 +137,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <img
-              src={user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId)}
+              src={getOptimizedImageUrl(user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 256)}
               alt={activeDisplayName}
               referrerPolicy="no-referrer"
               className="w-20 h-20 rounded-2xl object-cover border border-[#DFD9CE] dark:border-[#2A3542] shrink-0"
@@ -227,7 +227,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               <div>
                 <label className="block text-sm font-medium mb-2">الصورة الشخصية</label>
                 <div className="flex items-center gap-4">
-                  <img src={photoPreview || user.profile.avatarUrl || getAvatarImageUrl(activeAvatarId)} alt="معاينة الصورة الشخصية" className="w-16 h-16 rounded-full object-cover border border-[#DFD9CE] dark:border-[#2A3542]" />
+                  <img src={getOptimizedImageUrl(photoPreview || user.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 192)} alt="معاينة الصورة الشخصية" loading="lazy" decoding="async" className="w-16 h-16 rounded-full object-cover border border-[#DFD9CE] dark:border-[#2A3542]" />
                   <div className="space-y-2 min-w-0">
                     <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
                       const file = event.target.files?.[0] || null;
