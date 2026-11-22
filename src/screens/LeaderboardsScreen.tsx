@@ -62,12 +62,12 @@ export const LeaderboardsScreen: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold font-poetry">لوحة المتصدرين</h1>
-          <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+          <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">
             ترتيب القرّاء والشعراء حسب نقاط الخبرة المكتسبة ودقة الإجابات.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#EFECE4] dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542]">
+        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#EEE6D4] dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164]">
           {periods.map((p) => (
             <button
               key={p.id}
@@ -75,8 +75,8 @@ export const LeaderboardsScreen: React.FC = () => {
               onClick={() => setPeriod(p.id)}
               className={`px-4 py-2 rounded-lg text-xs font-semibold transition-colors whitespace-nowrap min-h-[40px] ${
                 period === p.id
-                  ? 'bg-white dark:bg-[#0F1419] text-[#181A1B] dark:text-[#F3EFE6] shadow-sm'
-                  : 'text-[#5E615E] dark:text-[#A0A8B0]'
+                  ? 'bg-white dark:bg-[#102448] text-[#17233A] dark:text-[#F7F3E8] shadow-sm'
+                  : 'text-[#626777] dark:text-[#C5CDDB]'
               }`}
             >
               {p.label}
@@ -86,50 +86,50 @@ export const LeaderboardsScreen: React.FC = () => {
       </div>
 
       {currentUserRank && (
-        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-[#0D6E52]/30 dark:border-[#18A87E]/30 px-4 py-3 text-sm flex items-center justify-between">
+        <div className="rounded-xl bg-emerald-50 dark:bg-emerald-950/30 border border-[#14284B]/30 dark:border-[#E0B84F]/30 px-4 py-3 text-sm flex items-center justify-between">
           <span>ترتيبك الحالي في هذه الفترة:</span>
-          <strong className="font-mono-tabular text-[#0D6E52] dark:text-[#18A87E]">
+          <strong className="font-mono-tabular text-[#14284B] dark:text-[#E0B84F]">
             المركز #{currentUserRank}
           </strong>
         </div>
       )}
 
       {loading ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center text-sm text-[#626777] dark:text-[#C5CDDB]">
           جارٍ تحميل قائمة المتصدرين...
         </div>
       ) : error ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center space-y-3">
-          <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">{error}</p>
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center space-y-3">
+          <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">{error}</p>
           {isOnline && !backendAvailable && (
             <button
               type="button"
               onClick={() => void recheckBackend()}
-              className="px-4 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
             >
               إعادة فحص الاتصال بالخادم
             </button>
           )}
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center space-y-4">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center space-y-4">
           <Trophy className="w-8 h-8 mx-auto text-[#B47B1B] dark:text-[#E5A93C]" />
           <div className="space-y-1">
             <h2 className="font-bold font-poetry text-xl">لا توجد نقاط مسجلة في هذه الفترة بعد</h2>
-            <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+            <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">
               سجّل حساباً وأكمل أول جولة تحدٍّ ليظهر اسمك في صدارة القائمة.
             </p>
           </div>
           <button
             type="button"
             onClick={() => navigate('modes')}
-            className="px-5 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold min-h-[44px]"
+            className="px-5 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
           >
             ابدأ التحدي الآن
           </button>
         </div>
       ) : (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] divide-y divide-[#DFD9CE] dark:divide-[#2A3542]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] divide-y divide-[#E8DEC8] dark:divide-[#2B4164]">
           {entries.map((entry) => {
             const isSelf = user?.profile.userId === entry.userId;
             return (
@@ -152,7 +152,7 @@ export const LeaderboardsScreen: React.FC = () => {
                     <div className="font-semibold text-sm truncate">
                       {entry.displayName} {isSelf ? '(أنت)' : ''}
                     </div>
-                    <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                    <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                       المستوى <span className="font-mono-tabular">{entry.level}</span> · دقة{' '}
                       <span className="font-mono-tabular">{entry.accuracy}%</span> · سلسلة{' '}
                       <span className="font-mono-tabular">{entry.currentStreak}</span>
@@ -161,10 +161,10 @@ export const LeaderboardsScreen: React.FC = () => {
                 </div>
 
                 <div className="text-left shrink-0">
-                  <div className="font-mono-tabular font-bold text-base text-[#0D6E52] dark:text-[#18A87E]">
+                  <div className="font-mono-tabular font-bold text-base text-[#14284B] dark:text-[#E0B84F]">
                     {entry.xp} XP
                   </div>
-                  <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0] font-mono-tabular">
+                  <div className="text-xs text-[#626777] dark:text-[#C5CDDB] font-mono-tabular">
                     {entry.gamesPlayed} جولات
                   </div>
                 </div>

@@ -84,7 +84,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       aria-modal="true"
       aria-label="إدارة الحساب"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-6 shadow-xl">
+      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-6 shadow-xl">
         <div className="flex items-center justify-between gap-4 mb-5">
           <h2 className="text-xl font-bold font-poetry">
             {mode === 'login' && 'تسجيل الدخول'}
@@ -96,20 +96,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             type="button"
             onClick={onClose}
             aria-label="إغلاق"
-            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EFECE4] dark:hover:bg-[#1E2732]"
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EEE6D4] dark:hover:bg-[#1E2732]"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {!backendAvailable && (
-          <div className="mb-4 p-3 rounded-xl bg-[#EFECE4] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-xs text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed">
+          <div className="mb-4 p-3 rounded-xl bg-[#EEE6D4] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-xs text-[#626777] dark:text-[#C5CDDB] leading-relaxed">
             وضع معاينة الواجهة نشط: يتفعّل تسجيل الدخول وإنشاء الحسابات عند تشغيل الخادم الخلفي وربط قاعدة البيانات.
           </div>
         )}
 
         {(mode === 'login' || mode === 'register') && (
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#EFECE4] dark:bg-[#0F1419] mb-5">
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#EEE6D4] dark:bg-[#102448] mb-5">
             <button
               type="button"
               onClick={() => {
@@ -118,8 +118,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               }}
               className={`py-2 text-sm font-medium rounded-lg transition-colors min-h-[40px] ${
                 mode === 'login'
-                  ? 'bg-white dark:bg-[#171E26] text-[#181A1B] dark:text-[#F3EFE6] shadow-sm'
-                  : 'text-[#5E615E] dark:text-[#A0A8B0]'
+                  ? 'bg-white dark:bg-[#172D50] text-[#17233A] dark:text-[#F7F3E8] shadow-sm'
+                  : 'text-[#626777] dark:text-[#C5CDDB]'
               }`}
             >
               دخول
@@ -132,8 +132,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               }}
               className={`py-2 text-sm font-medium rounded-lg transition-colors min-h-[40px] ${
                 mode === 'register'
-                  ? 'bg-white dark:bg-[#171E26] text-[#181A1B] dark:text-[#F3EFE6] shadow-sm'
-                  : 'text-[#5E615E] dark:text-[#A0A8B0]'
+                  ? 'bg-white dark:bg-[#172D50] text-[#17233A] dark:text-[#F7F3E8] shadow-sm'
+                  : 'text-[#626777] dark:text-[#C5CDDB]'
               }`}
             >
               حساب جديد
@@ -164,7 +164,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="مثال: سيف الدين الكندي"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm focus:outline-none focus:border-[#0D6E52]"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm focus:outline-none focus:border-[#14284B]"
                 />
               </div>
               <div>
@@ -176,7 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="saif_alkindi"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm focus:outline-none focus:border-[#0D6E52] text-left"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm focus:outline-none focus:border-[#14284B] text-left"
                 />
               </div>
             </>
@@ -192,7 +192,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="reader@example.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm focus:outline-none focus:border-[#0D6E52] text-left"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm focus:outline-none focus:border-[#14284B] text-left"
               />
             </div>
           )}
@@ -207,7 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="٨ أحرف على الأقل"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm focus:outline-none focus:border-[#0D6E52]"
+                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm focus:outline-none focus:border-[#14284B]"
               />
             </div>
           )}
@@ -222,7 +222,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   dir="ltr"
                   value={resetToken}
                   onChange={(e) => setResetToken(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm text-left"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm text-left"
                 />
               </div>
               <div>
@@ -233,19 +233,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   minLength={8}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm"
                 />
               </div>
             </>
           )}
 
           {mode === 'register' && hasGuestProgress && (
-            <label className="flex items-start gap-3 p-3 rounded-xl bg-[#EFECE4] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] cursor-pointer text-xs">
+            <label className="flex items-start gap-3 p-3 rounded-xl bg-[#EEE6D4] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] cursor-pointer text-xs">
               <input
                 type="checkbox"
                 checked={migrateGuest}
                 onChange={(e) => setMigrateGuest(e.target.checked)}
-                className="mt-0.5 accent-[#0D6E52]"
+                className="mt-0.5 accent-[#14284B]"
               />
               <span>
                 ترحيل تقدم الزائر الحالي ({guest.stats.totalXp} نقطة خبرة و{guest.stats.gamesPlayed} جولات) إلى حسابي الجديد دون تكرار.
@@ -256,7 +256,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3 px-4 rounded-xl bg-[#0D6E52] hover:bg-[#0A5740] dark:bg-[#18A87E] dark:hover:bg-[#14906B] text-white dark:text-[#0F1419] font-semibold text-sm transition-colors disabled:opacity-60 min-h-[46px]"
+            className="w-full py-3 px-4 rounded-xl bg-[#14284B] hover:bg-[#0D1D39] dark:bg-[#E0B84F] dark:hover:bg-[#C69B2F] text-white dark:text-[#102448] font-semibold text-sm transition-colors disabled:opacity-60 min-h-[46px]"
           >
             {submitting
               ? 'جارٍ التنفيذ...'
@@ -270,7 +270,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </form>
 
-        <div className="mt-4 flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="mt-4 flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
           {mode === 'login' && (
             <button
               type="button"

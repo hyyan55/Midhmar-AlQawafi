@@ -133,21 +133,21 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-8">
       {/* Header Profile Card */}
-      <section className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-6 sm:p-8">
+      <section className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-6 sm:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <img
               src={getOptimizedImageUrl(user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 256)}
               alt={activeDisplayName}
               referrerPolicy="no-referrer"
-              className="w-20 h-20 rounded-2xl object-cover border border-[#DFD9CE] dark:border-[#2A3542] shrink-0" loading="eager" decoding="async" />
+              className="w-20 h-20 rounded-2xl object-cover border border-[#E8DEC8] dark:border-[#2B4164] shrink-0" loading="eager" decoding="async" />
             <div className="space-y-1.5">
-              <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+              <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                 {user ? `@${user.profile.username}` : 'حساب زائر محلي'} · {getRankTitleAr(activeStats.level)}
               </div>
               <h1 className="text-2xl sm:text-3xl font-bold font-poetry">{activeDisplayName}</h1>
               {user?.profile.bio && (
-                <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0] max-w-xl">{user.profile.bio}</p>
+                <p className="text-sm text-[#626777] dark:text-[#C5CDDB] max-w-xl">{user.profile.bio}</p>
               )}
             </div>
           </div>
@@ -156,7 +156,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
             <button
               type="button"
               onClick={() => setEditing((v) => !v)}
-              className="px-4 py-2.5 rounded-xl bg-[#EFECE4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-sm font-medium flex items-center gap-2 min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl bg-[#EEE6D4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-sm font-medium flex items-center gap-2 min-h-[44px]"
             >
               <Edit3 className="w-4 h-4" />
               <span>{editing ? 'إلغاء التعديل' : 'تعديل الملف'}</span>
@@ -165,7 +165,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               <button
                 type="button"
                 onClick={onOpenAuthModal}
-                className="px-4 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold min-h-[44px]"
+                className="px-4 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
               >
                 ترحيل التقدم لحساب دائم
               </button>
@@ -173,7 +173,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
             <button
               type="button"
               onClick={() => navigate('settings')}
-              className="px-4 py-2.5 rounded-xl border border-[#DFD9CE] dark:border-[#2A3542] text-sm font-medium min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl border border-[#E8DEC8] dark:border-[#2B4164] text-sm font-medium min-h-[44px]"
             >
               الإعدادات
             </button>
@@ -182,7 +182,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
 
         {/* Edit Profile Inline Form */}
         {editing && (
-          <form onSubmit={handleSaveProfile} className="mt-6 pt-6 border-t border-[#DFD9CE] dark:border-[#2A3542] space-y-5">
+          <form onSubmit={handleSaveProfile} className="mt-6 pt-6 border-t border-[#E8DEC8] dark:border-[#2B4164] space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium mb-1.5">الاسم الظاهر</label>
@@ -191,7 +191,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                   required
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm"
                 />
               </div>
               {user && (
@@ -203,7 +203,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                     dir="ltr"
                     value={editUsername}
                     onChange={(e) => setEditUsername(e.target.value)}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm text-left"
+                    className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm text-left"
                   />
                 </div>
               )}
@@ -217,7 +217,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                   value={editBio}
                   onChange={(e) => setEditBio(e.target.value)}
                   placeholder="شغوف بشعر الحكمة والمعلقات..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm"
+                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] border border-[#E8DEC8] dark:border-[#2B4164] text-sm"
                 />
               </div>
             )}
@@ -226,14 +226,14 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               <div>
                 <label className="block text-sm font-medium mb-2">الصورة الشخصية</label>
                 <div className="flex items-center gap-4">
-                  <img src={getOptimizedImageUrl(photoPreview || user.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 192)} alt="معاينة الصورة الشخصية" loading="lazy" decoding="async" className="w-16 h-16 rounded-full object-cover border border-[#DFD9CE] dark:border-[#2A3542]" />
+                  <img src={getOptimizedImageUrl(photoPreview || user.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 192)} alt="معاينة الصورة الشخصية" loading="lazy" decoding="async" className="w-16 h-16 rounded-full object-cover border border-[#E8DEC8] dark:border-[#2B4164]" />
                   <div className="space-y-2 min-w-0">
                     <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
                       const file = event.target.files?.[0] || null;
                       setSelectedPhoto(file);
                       setPhotoPreview(file ? URL.createObjectURL(file) : null);
-                    }} className="block w-full text-xs file:ml-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#EFECE4] dark:file:bg-[#1E2732]" />
-                    <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">JPG أو PNG أو WebP، بحد أقصى 8 ميجابايت. تُضغط الصورة تلقائياً قبل الرفع.</p>
+                    }} className="block w-full text-xs file:ml-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#EEE6D4] dark:file:bg-[#1E2732]" />
+                    <p className="text-xs text-[#626777] dark:text-[#C5CDDB]">JPG أو PNG أو WebP، بحد أقصى 8 ميجابايت. تُضغط الصورة تلقائياً قبل الرفع.</p>
                   </div>
                 </div>
               </div>
@@ -249,8 +249,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                     onClick={() => setEditAvatar(opt.id)}
                     className={`p-3 rounded-xl border flex items-center gap-3 text-right transition-colors ${
                       editAvatar === opt.id
-                        ? 'border-[#0D6E52] dark:border-[#18A87E] bg-emerald-50/50 dark:bg-emerald-950/30'
-                        : 'border-[#DFD9CE] dark:border-[#2A3542]'
+                        ? 'border-[#14284B] dark:border-[#E0B84F] bg-emerald-50/50 dark:bg-emerald-950/30'
+                        : 'border-[#E8DEC8] dark:border-[#2B4164]'
                     }`}
                   >
                     <img
@@ -267,7 +267,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
             <button
               type="submit"
               disabled={saving}
-              className="px-5 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold flex items-center gap-2 min-h-[44px]"
+              className="px-5 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold flex items-center gap-2 min-h-[44px]"
             >
               <Check className="w-4 h-4" />
               <span>{saving ? 'جارٍ الحفظ...' : 'حفظ التغييرات'}</span>
@@ -276,18 +276,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
         )}
 
         {/* XP Bar */}
-        <div className="mt-6 pt-6 border-t border-[#DFD9CE] dark:border-[#2A3542] space-y-2">
+        <div className="mt-6 pt-6 border-t border-[#E8DEC8] dark:border-[#2B4164] space-y-2">
           <div className="flex items-center justify-between text-xs sm:text-sm">
             <span className="font-semibold">
               المستوى <span className="font-mono-tabular">{activeStats.level}</span>
             </span>
-            <span className="font-mono-tabular text-[#5E615E] dark:text-[#A0A8B0]">
+            <span className="font-mono-tabular text-[#626777] dark:text-[#C5CDDB]">
               {activeStats.totalXp} / {nextLevelXp} XP
             </span>
           </div>
-          <div className="h-2.5 rounded-full bg-[#EFECE4] dark:bg-[#0F1419] overflow-hidden">
+          <div className="h-2.5 rounded-full bg-[#EEE6D4] dark:bg-[#102448] overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#0D6E52] dark:bg-[#18A87E]"
+              className="h-full rounded-full bg-[#14284B] dark:bg-[#E0B84F]"
               style={{ width: `${levelProgress}%` }}
             />
           </div>
@@ -296,31 +296,31 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
 
       {/* Statistics */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>مجموع الخبرة</span>
             <Trophy className="w-4 h-4 text-[#B47B1B] dark:text-[#E5A93C]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular mt-2">{activeStats.totalXp}</div>
         </div>
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>السلسلة الحالية</span>
             <Flame className="w-4 h-4 text-[#B47B1B] dark:text-[#E5A93C]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular mt-2">{activeStats.currentStreak} أيام</div>
         </div>
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>دقة الإجابات</span>
-            <Award className="w-4 h-4 text-[#0D6E52] dark:text-[#18A87E]" />
+            <Award className="w-4 h-4 text-[#14284B] dark:text-[#E0B84F]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular mt-2">{accuracy}%</div>
         </div>
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>التحديات اليومية</span>
-            <History className="w-4 h-4 text-[#0D6E52] dark:text-[#18A87E]" />
+            <History className="w-4 h-4 text-[#14284B] dark:text-[#E0B84F]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular mt-2">
             {activeStats.dailyChallengesCompleted}
@@ -337,23 +337,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               key={ach.code}
               className={`rounded-2xl border p-5 space-y-2 ${
                 ach.unlocked
-                  ? 'bg-white dark:bg-[#171E26] border-[#0D6E52]/50 dark:border-[#18A87E]/50'
-                  : 'bg-[#EFECE4]/50 dark:bg-[#171E26]/40 border-[#DFD9CE] dark:border-[#2A3542] opacity-70'
+                  ? 'bg-white dark:bg-[#172D50] border-[#14284B]/50 dark:border-[#E0B84F]/50'
+                  : 'bg-[#EEE6D4]/50 dark:bg-[#172D50]/40 border-[#E8DEC8] dark:border-[#2B4164] opacity-70'
               }`}
             >
-              <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+              <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
                 <span>{ach.category}</span>
                 <span className="font-mono-tabular">+{ach.xpBonus} XP</span>
               </div>
               <h3 className="font-bold text-base">{ach.titleAr}</h3>
-              <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed">
+              <p className="text-xs text-[#626777] dark:text-[#C5CDDB] leading-relaxed">
                 {ach.descriptionAr}
               </p>
               <div className="text-xs font-semibold pt-1">
                 {ach.unlocked ? (
-                  <span className="text-[#0D6E52] dark:text-[#18A87E]">مفتوح</span>
+                  <span className="text-[#14284B] dark:text-[#E0B84F]">مفتوح</span>
                 ) : (
-                  <span className="text-[#5E615E] dark:text-[#A0A8B0]">قيد الإنجاز</span>
+                  <span className="text-[#626777] dark:text-[#C5CDDB]">قيد الإنجاز</span>
                 )}
               </div>
             </div>
@@ -365,11 +365,11 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
       <section className="space-y-4">
         <h2 className="text-xl sm:text-2xl font-bold font-poetry">سجل التحديات</h2>
         {history.length === 0 ? (
-          <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-8 text-center text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+          <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-8 text-center text-sm text-[#626777] dark:text-[#C5CDDB]">
             لا توجد جولات مسجلة بعد.
           </div>
         ) : (
-          <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] divide-y divide-[#DFD9CE] dark:divide-[#2A3542]">
+          <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] divide-y divide-[#E8DEC8] dark:divide-[#2B4164]">
             {history.map((item) => (
               <div
                 key={item.sessionId}
@@ -377,7 +377,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               >
                 <div className="space-y-1">
                   <div className="font-semibold text-sm">{GAME_MODES_META[item.mode].titleAr}</div>
-                  <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                  <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                     <span className="font-mono-tabular">
                       {item.correctCount}/{item.totalQuestions}
                     </span>{' '}
@@ -385,7 +385,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                     <span className="font-mono-tabular">{formatDurationAr(item.durationSeconds)}</span>
                   </div>
                 </div>
-                <div className="font-mono-tabular text-sm font-bold text-[#0D6E52] dark:text-[#18A87E]">
+                <div className="font-mono-tabular text-sm font-bold text-[#14284B] dark:text-[#E0B84F]">
                   +{item.xpEarned} XP
                 </div>
               </div>

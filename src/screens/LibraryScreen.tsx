@@ -178,19 +178,19 @@ export const LibraryScreen: React.FC = () => {
       <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div className="space-y-1">
           <h1 className="text-2xl sm:text-3xl font-bold font-poetry">مكتبة الشعر العربي</h1>
-          <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+          <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">
             ابحث في القصائد والأبيات، وتصفّح الشعراء والعصور التاريخية والبحور الشعرية.
           </p>
         </div>
 
-        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#EFECE4] dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542]">
+        <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#EEE6D4] dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164]">
           <button
             type="button"
             onClick={() => setTab('poems')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[40px] ${
               tab === 'poems'
-                ? 'bg-white dark:bg-[#0F1419] text-[#181A1B] dark:text-[#F3EFE6] shadow-sm'
-                : 'text-[#5E615E] dark:text-[#A0A8B0]'
+                ? 'bg-white dark:bg-[#102448] text-[#17233A] dark:text-[#F7F3E8] shadow-sm'
+                : 'text-[#626777] dark:text-[#C5CDDB]'
             }`}
           >
             <BookOpen className="w-4 h-4" />
@@ -201,8 +201,8 @@ export const LibraryScreen: React.FC = () => {
             onClick={() => setTab('poets')}
             className={`px-4 py-2 rounded-lg text-xs font-semibold flex items-center gap-1.5 min-h-[40px] ${
               tab === 'poets'
-                ? 'bg-white dark:bg-[#0F1419] text-[#181A1B] dark:text-[#F3EFE6] shadow-sm'
-                : 'text-[#5E615E] dark:text-[#A0A8B0]'
+                ? 'bg-white dark:bg-[#102448] text-[#17233A] dark:text-[#F7F3E8] shadow-sm'
+                : 'text-[#626777] dark:text-[#C5CDDB]'
             }`}
           >
             <User className="w-4 h-4" />
@@ -214,13 +214,13 @@ export const LibraryScreen: React.FC = () => {
       {/* Search and Taxonomy Filters */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <div className="md:col-span-2 relative">
-          <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-[#5E615E] dark:text-[#A0A8B0]" />
+          <Search className="w-4 h-4 absolute right-3.5 top-1/2 -translate-y-1/2 text-[#626777] dark:text-[#C5CDDB]" />
           <input
             type="search"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ابحث عن مطلع بيت أو عنوان قصيدة أو اسم شاعر..."
-            className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] text-sm min-h-[44px]"
+            className="w-full pr-10 pl-4 py-2.5 rounded-xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] text-sm min-h-[44px]"
           />
         </div>
 
@@ -228,7 +228,7 @@ export const LibraryScreen: React.FC = () => {
           aria-label="تصفية حسب العصر"
           value={selectedEraId ?? ''}
           onChange={(e) => setSelectedEraId(e.target.value ? Number(e.target.value) : undefined)}
-          className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] text-sm min-h-[44px]"
+          className="px-3.5 py-2.5 rounded-xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] text-sm min-h-[44px]"
         >
           <option value="">جميع العصور</option>
           {eras.map((era) => (
@@ -246,7 +246,7 @@ export const LibraryScreen: React.FC = () => {
               onChange={(e) =>
                 setSelectedMeterId(e.target.value ? Number(e.target.value) : undefined)
               }
-              className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] text-xs min-h-[44px]"
+              className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] text-xs min-h-[44px]"
             >
               <option value="">كل البحور</option>
               {meters.map((m) => (
@@ -261,7 +261,7 @@ export const LibraryScreen: React.FC = () => {
               onChange={(e) =>
                 setSelectedThemeId(e.target.value ? Number(e.target.value) : undefined)
               }
-              className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] text-xs min-h-[44px]"
+              className="px-3 py-2.5 rounded-xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] text-xs min-h-[44px]"
             >
               <option value="">كل الأغراض</option>
               {themes.map((t) => (
@@ -276,26 +276,26 @@ export const LibraryScreen: React.FC = () => {
 
       {/* Results List */}
       {loading ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center text-sm text-[#626777] dark:text-[#C5CDDB]">
           جارٍ البحث في الدواوين...
         </div>
       ) : !backendAvailable && !offlinePack ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-8 sm:p-10 text-center space-y-3">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-8 sm:p-10 text-center space-y-3">
           <h2 className="text-xl font-bold font-poetry">المكتبة بانتظار ربط الخادم الخلفي</h2>
-          <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0] max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm text-[#626777] dark:text-[#C5CDDB] max-w-xl mx-auto leading-relaxed">
             لا تُعرض بيانات شعرية وهمية في وضع تطوير الواجهة. عند تشغيل الخادم الخلفي (<code dir="ltr">npm run dev:api</code>) أو ربط قاعدة بيانات الشعر، ستظهر هنا القصائد والشعراء والعصور والبحور الحقيقية.
           </p>
           <button
             type="button"
             onClick={() => void recheckBackend()}
-            className="px-4 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold min-h-[44px]"
+            className="px-4 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
           >
             إعادة فحص الاتصال بالخادم
           </button>
         </div>
       ) : tab === 'poems' ? (
         poems.length === 0 ? (
-          <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+          <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center text-sm text-[#626777] dark:text-[#C5CDDB]">
             لم يُعثر على قصائد مطابقة لمعايير البحث.
           </div>
         ) : (
@@ -305,15 +305,15 @@ export const LibraryScreen: React.FC = () => {
                 key={poem.id}
                 type="button"
                 onClick={() => void handleOpenPoem(poem.id)}
-                className="text-right rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] hover:border-[#0D6E52] dark:hover:border-[#18A87E] p-6 transition-colors space-y-3"
+                className="text-right rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] hover:border-[#14284B] dark:hover:border-[#E0B84F] p-6 transition-colors space-y-3"
               >
-                <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                   {poem.poetNameAr} · {poem.eraNameAr}
                   {poem.meterNameAr ? ` · ${poem.meterNameAr}` : ''}
                 </div>
                 <h2 className="text-xl font-bold font-poetry">{poem.titleAr}</h2>
                 {poem.excerptSadr && (
-                  <p className="font-poetry text-base text-[#5E615E] dark:text-[#A0A8B0] line-clamp-2">
+                  <p className="font-poetry text-base text-[#626777] dark:text-[#C5CDDB] line-clamp-2">
                     {poem.excerptSadr} · {poem.excerptAjuz}
                   </p>
                 )}
@@ -322,7 +322,7 @@ export const LibraryScreen: React.FC = () => {
           </div>
         )
       ) : poets.length === 0 ? (
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-10 text-center text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-10 text-center text-sm text-[#626777] dark:text-[#C5CDDB]">
           لم يُعثر على شعراء مطابقين.
         </div>
       ) : (
@@ -332,7 +332,7 @@ export const LibraryScreen: React.FC = () => {
               key={poet.id}
               type="button"
               onClick={() => void handleOpenPoet(poet.id)}
-              className="text-right rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] hover:border-[#0D6E52] dark:hover:border-[#18A87E] p-5 transition-colors flex items-start gap-4"
+              className="text-right rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] hover:border-[#14284B] dark:hover:border-[#E0B84F] p-5 transition-colors flex items-start gap-4"
             >
               <img
                 src={getAvatarImageUrl(poet.avatarKey || 'scholar_astrolabe')}
@@ -340,12 +340,12 @@ export const LibraryScreen: React.FC = () => {
                 referrerPolicy="no-referrer"
                 className="w-12 h-12 rounded-xl object-cover shrink-0" loading="lazy" decoding="async" />
               <div className="space-y-1 min-w-0">
-                <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                   {poet.eraNameAr}
                   {poet.poemCount !== undefined ? ` · ${poet.poemCount} قصائد` : ''}
                 </div>
                 <h2 className="text-lg font-bold font-poetry truncate">{poet.nameAr}</h2>
-                <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] line-clamp-2 leading-relaxed">
+                <p className="text-xs text-[#626777] dark:text-[#C5CDDB] line-clamp-2 leading-relaxed">
                   {poet.bioAr}
                 </p>
               </div>
@@ -361,10 +361,10 @@ export const LibraryScreen: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] overflow-hidden">
-            <div className="p-5 sm:p-6 border-b border-[#DFD9CE] dark:border-[#2A3542] flex items-start justify-between gap-4">
+          <div className="w-full max-w-3xl max-h-[88dvh] flex flex-col rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] overflow-hidden">
+            <div className="p-5 sm:p-6 border-b border-[#E8DEC8] dark:border-[#2B4164] flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                   {openPoem.poetNameAr} · {openPoem.eraNameAr}
                   {openPoem.meterNameAr ? ` · ${openPoem.meterNameAr}` : ''}
                   {openPoem.themeNameAr ? ` · ${openPoem.themeNameAr}` : ''}
@@ -375,7 +375,7 @@ export const LibraryScreen: React.FC = () => {
                 type="button"
                 onClick={() => setOpenPoem(null)}
                 aria-label="إغلاق القصيدة"
-                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EFECE4] dark:hover:bg-[#1E2732]"
+                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EEE6D4] dark:hover:bg-[#1E2732]"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -386,7 +386,7 @@ export const LibraryScreen: React.FC = () => {
                 {openPoem.verses.map((v) => (
                   <div
                     key={v.id}
-                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-8 py-2.5 border-b border-[#EFECE4] dark:border-[#2A3542]/60 font-poetry text-xl leading-loose text-center"
+                    className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-8 py-2.5 border-b border-[#EEE6D4] dark:border-[#2B4164]/60 font-poetry text-xl leading-loose text-center"
                   >
                     <span>{v.sadr}</span>
                     <span>{v.ajuz}</span>
@@ -395,11 +395,11 @@ export const LibraryScreen: React.FC = () => {
               </div>
 
               {openPoem.poetBioAr && (
-                <div className="p-4 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] space-y-1">
-                  <div className="text-xs font-semibold text-[#0D6E52] dark:text-[#18A87E]">
+                <div className="p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] space-y-1">
+                  <div className="text-xs font-semibold text-[#14284B] dark:text-[#E0B84F]">
                     ترجمة الشاعر: {openPoem.poetNameAr}
                   </div>
-                  <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed">
+                  <p className="text-xs text-[#626777] dark:text-[#C5CDDB] leading-relaxed">
                     {openPoem.poetBioAr}
                   </p>
                 </div>
@@ -416,10 +416,10 @@ export const LibraryScreen: React.FC = () => {
           role="dialog"
           aria-modal="true"
         >
-          <div className="w-full max-w-2xl max-h-[85dvh] flex flex-col rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] overflow-hidden">
-            <div className="p-5 sm:p-6 border-b border-[#DFD9CE] dark:border-[#2A3542] flex items-start justify-between gap-4">
+          <div className="w-full max-w-2xl max-h-[85dvh] flex flex-col rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] overflow-hidden">
+            <div className="p-5 sm:p-6 border-b border-[#E8DEC8] dark:border-[#2B4164] flex items-start justify-between gap-4">
               <div className="space-y-1">
-                <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                   {openPoet.poet.eraNameAr}
                   {openPoet.poet.titleAr ? ` · ${openPoet.poet.titleAr}` : ''}
                 </div>
@@ -429,14 +429,14 @@ export const LibraryScreen: React.FC = () => {
                 type="button"
                 onClick={() => setOpenPoet(null)}
                 aria-label="إغلاق"
-                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EFECE4] dark:hover:bg-[#1E2732]"
+                className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-xl hover:bg-[#EEE6D4] dark:hover:bg-[#1E2732]"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="p-6 overflow-y-auto space-y-6">
-              <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed">
+              <p className="text-sm text-[#626777] dark:text-[#C5CDDB] leading-relaxed">
                 {openPoet.poet.bioAr}
               </p>
 
@@ -450,15 +450,15 @@ export const LibraryScreen: React.FC = () => {
                       setOpenPoet(null);
                       void handleOpenPoem(pm.id);
                     }}
-                    className="w-full text-right p-4 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] hover:border-[#0D6E52] border border-[#DFD9CE] dark:border-[#2A3542] flex items-center justify-between gap-4"
+                    className="w-full text-right p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448] hover:border-[#14284B] border border-[#E8DEC8] dark:border-[#2B4164] flex items-center justify-between gap-4"
                   >
                     <div>
                       <div className="font-poetry text-lg font-bold">{pm.titleAr}</div>
-                      <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                      <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                         {pm.meterNameAr || 'متنوع'} · {pm.verseCount} أبيات
                       </div>
                     </div>
-                    <span className="text-xs font-semibold text-[#0D6E52] dark:text-[#18A87E]">
+                    <span className="text-xs font-semibold text-[#14284B] dark:text-[#E0B84F]">
                       قراءة
                     </span>
                   </button>
