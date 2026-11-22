@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import { beforeAll, afterAll, describe, expect, it } from 'vitest';
+import { beforeAll, afterAll, describe, expect, it, vi } from 'vitest';
 import { calculateLevelFromXp } from '../packages/shared/src/constants.ts';
 import {
   ensureDatabaseInitialized,
@@ -17,6 +17,20 @@ import { createApiApp } from '../server/src/app.ts';
 import { splitQafiyahPoemVerses } from '../database/scripts/import-qafiyah.ts';
 import type { Server } from 'node:http';
 
+// Force every API route in this suite to use the isolated temporary SQLite database.
+// This prevents inherited PGHOST / DATABASE_URL values from sending tests to Aiven.
+const testDbState = vi.hoisted(() => ({ path: '' }));
+
+vi.mock('../server/src/db/database.ts', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../server/src/db/database.ts')>();
+  return {
+    ...actual,
+    getDb: (customSqlitePath?: string) => actual.getDb(customSqlitePath ?? testDbState.path),
+    ensureDatabaseInitialized: (customSqlitePath?: string) =>
+      actual.ensureDatabaseInitialized(customSqlitePath ?? testDbState.path),
+  };
+});
+
 let tempDir = '';
 let testDbPath = '';
 let server: Server;
@@ -25,6 +39,7 @@ let baseUrl = '';
 beforeAll(async () => {
   tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'qafiyah-test-'));
   testDbPath = path.join(tempDir, 'test.sqlite');
+  testDbState.path = testDbPath;
   process.env.SQLITE_DB_PATH = testDbPath;
   resetSqliteForTests(testDbPath);
   await ensureDatabaseInitialized(testDbPath);
