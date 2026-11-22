@@ -30,20 +30,40 @@ export function getPreviousCalendarDate(yyyyMmDd: string): string {
   return dt.toISOString().slice(0, 10);
 }
 
+/**
+ * PostgreSQL DATE columns are returned as JavaScript Date objects by the
+ * default node-postgres parser. SQLite returns strings, so normalize both
+ * representations before doing calendar-day comparisons.
+ */
+export function normalizeLastPlayedDate(value: string | Date | null): string | null {
+  if (value === null) return null;
+
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const day = String(value.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  const normalized = value.trim().slice(0, 10);
+  return /^\\d{4}-\\d{2}-\\d{2}$/.test(normalized) ? normalized : null;
+}
+
 export function computeNextStreak(
-  lastPlayedDate: string | null,
+  lastPlayedDate: string | Date | null,
   currentStreak: number,
   longestStreak: number,
   todayDate: string
 ): { currentStreak: number; longestStreak: number } {
-  if (!lastPlayedDate) {
+  const normalizedLast = normalizeLastPlayedDate(lastPlayedDate);
+  if (!normalizedLast) {
     return {
       currentStreak: 1,
       longestStreak: Math.max(1, longestStreak),
     };
   }
 
-  const normalizedLast = lastPlayedDate.slice(0, 10);
   if (normalizedLast === todayDate) {
     const kept = Math.max(1, currentStreak);
     return {
