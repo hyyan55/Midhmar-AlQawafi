@@ -140,8 +140,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               src={getOptimizedImageUrl(user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 256)}
               alt={activeDisplayName}
               referrerPolicy="no-referrer"
-              className="w-20 h-20 rounded-2xl object-cover border border-[#DFD9CE] dark:border-[#2A3542] shrink-0"
-            />
+              className="w-20 h-20 rounded-2xl object-cover border border-[#DFD9CE] dark:border-[#2A3542] shrink-0" loading="eager" decoding="async" />
             <div className="space-y-1.5">
               <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
                 {user ? `@${user.profile.username}` : 'حساب زائر محلي'} · {getRankTitleAr(activeStats.level)}
@@ -258,8 +257,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                       src={getAvatarImageUrl(opt.id)}
                       alt={opt.labelAr}
                       referrerPolicy="no-referrer"
-                      className="w-10 h-10 rounded-lg object-cover shrink-0"
-                    />
+                      className="w-10 h-10 rounded-lg object-cover shrink-0" loading="lazy" decoding="async" />
                     <span className="text-xs font-medium">{opt.labelAr}</span>
                   </button>
                 ))}
