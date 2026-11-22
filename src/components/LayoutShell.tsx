@@ -104,8 +104,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children, onOpenAuthMo
                     src={getOptimizedImageUrl(getAvatarImageUrl(activeAvatarId), 96)}
                     alt={activeDisplayName}
                     referrerPolicy="no-referrer"
-                    className="w-7 h-7 rounded-lg object-cover shrink-0"
-                  />
+                    className="w-7 h-7 rounded-lg object-cover shrink-0" loading="eager" decoding="async" />
                   <span className="text-sm font-medium max-w-[110px] truncate">{activeDisplayName}</span>
                 </button>
               ) : (
