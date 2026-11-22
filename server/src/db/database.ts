@@ -38,7 +38,12 @@ function getPgPool(): Pool {
       database: env.pgDatabase || undefined,
       user: env.pgUser || undefined,
       password: env.pgPassword || undefined,
-      ssl: env.pgSsl ? { rejectUnauthorized: false } : false,
+      ssl: env.pgSsl
+        ? {
+            ca: fs.readFileSync('/etc/secrets/ca.pem', 'utf8'),
+            rejectUnauthorized: true,
+          }
+        : false,
       max: 10,
       connectionTimeoutMillis: 15000,
     });
