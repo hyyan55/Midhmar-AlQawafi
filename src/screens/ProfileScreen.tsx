@@ -14,6 +14,7 @@ import { apiClient } from '../services/apiClient.ts';
 import { getOptimizedImageUrl, uploadProfilePhoto } from '../services/profilePhoto.ts';
 import { offlineDb } from '../storage/offlineDb.ts';
 import { formatDurationAr, getAvatarImageUrl } from '../utils/feedback.ts';
+import { AvatarCropDialog } from '../components/AvatarCropDialog.tsx';
 
 interface ProfileScreenProps {
   onOpenAuthModal: () => void;
@@ -55,6 +56,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
   const [saving, setSaving] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
 
   useEffect(() => {
     setEditName(activeDisplayName);
@@ -115,6 +117,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
       }
       setSelectedPhoto(null);
       setPhotoPreview(null);
+      setCropFile(null);
       setEditing(false);
     } catch (err) {
       showNotice('error', err instanceof Error ? err.message : 'تعذر حفظ التعديلات');
@@ -132,6 +135,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-8">
+      {cropFile && (
+        <AvatarCropDialog
+          file={cropFile}
+          onCancel={() => setCropFile(null)}
+          onSave={(croppedFile) => {
+            setSelectedPhoto(croppedFile);
+            setPhotoPreview(URL.createObjectURL(croppedFile));
+            setCropFile(null);
+          }}
+        />
+      )}
+
       {/* Header Profile Card */}
       <section className="rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-6 sm:p-8">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -140,7 +155,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
               src={getOptimizedImageUrl(user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 256)}
               alt={activeDisplayName}
               referrerPolicy="no-referrer"
-              className="w-20 h-20 rounded-2xl object-cover border border-[#E2D8C5] dark:border-[#35465E] shrink-0" loading="eager" decoding="async" />
+              className="w-20 h-20 rounded-full object-cover border border-[#E2D8C5] dark:border-[#35465E] shrink-0" loading="eager" decoding="async" />
             <div className="space-y-1.5">
               <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">
                 {user ? `@${user.profile.username}` : 'حساب زائر محلي'} · {getRankTitleAr(activeStats.level)}
@@ -230,10 +245,10 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                   <div className="space-y-2 min-w-0">
                     <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
                       const file = event.target.files?.[0] || null;
-                      setSelectedPhoto(file);
-                      setPhotoPreview(file ? URL.createObjectURL(file) : null);
+                      if (file) setCropFile(file);
+                      event.currentTarget.value = '';
                     }} className="block w-full text-xs file:ml-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#EAE2D2] dark:file:bg-[#1E2732]" />
-                    <p className="text-xs text-[#697586] dark:text-[#C0CAD6]">JPG أو PNG أو WebP، بحد أقصى 8 ميجابايت. تُضغط الصورة تلقائياً قبل الرفع.</p>
+                    <p className="text-xs text-[#697586] dark:text-[#C0CAD6]">اختر صورة حتى 8 ميجابايت، ثم اضبط القص الدائري والتكبير قبل الحفظ.</p>
                   </div>
                 </div>
               </div>

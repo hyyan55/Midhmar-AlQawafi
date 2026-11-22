@@ -14,7 +14,7 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onRegiste
         <div className="relative min-h-[270px] lg:min-h-[610px] flex flex-col items-center justify-center text-center px-7 py-10 sm:px-12 bg-[#14243B] text-[#F5F1E8]">
           <div aria-hidden="true" className="absolute inset-0 opacity-[.08]" style={{backgroundImage:'radial-gradient(#F5F1E8 1px, transparent 1px)',backgroundSize:'24px 24px'}} />
           <div className="relative flex flex-col items-center">
-            <img src="/brand-mark.webp" alt="" className="w-24 h-24 sm:w-28 sm:h-28 mb-6 drop-shadow-lg" />
+            <img src="/brand-mark.webp" alt="" width="112" height="112" fetchPriority="high" loading="eager" decoding="sync" className="w-24 h-24 sm:w-28 sm:h-28 mb-6 drop-shadow-lg" />
             <p className="text-xs tracking-[.28em] text-[#C6A15B] mb-3">الشعر العربي · ذاكرة وإبداع</p>
             <h1 className="font-poetry text-5xl sm:text-6xl font-bold leading-tight">{appName}</h1>
             <div className="w-16 h-1 rounded-full bg-[#C6A15B] my-6" />
