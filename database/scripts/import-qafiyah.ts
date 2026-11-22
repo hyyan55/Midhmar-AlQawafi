@@ -19,6 +19,7 @@ import path from 'node:path';
 import readline from 'node:readline';
 import { finished } from 'node:stream/promises';
 import { Pool } from 'pg';
+import type { PoolClient } from 'pg';
 import dotenv from 'dotenv';
 
 dotenv.config();
@@ -198,12 +199,12 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
       streams.themes.write(JSON.stringify({ sourceId, nameAr, slug: `theme_${sourceId}` }) + '\n');
       report.counts.themes.imported += 1;
     } else if (currentTable === 'rhymes') {
-      const nameAr = (row.name || row.letter || '').trim();
+      const nameAr = (row.pattern || row.name || row.letter || '').trim();
       if (!nameAr) {
         report.counts.rhymes.rejected += 1;
         continue;
       }
-      streams.rhymes.write(JSON.stringify({ sourceId, letter: nameAr.slice(0, 4), nameAr }) + '\n');
+      streams.rhymes.write(JSON.stringify({ sourceId, letter: nameAr, nameAr }) + '\n');
       report.counts.rhymes.imported += 1;
     } else if (currentTable === 'types') {
       const nameAr = (row.name || row.name_ar || '').trim();
@@ -294,159 +295,284 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
   return report;
 }
 
-async function readNdjson<T>(filePath: string): Promise<T[]> {
-  if (!fs.existsSync(filePath)) return [];
-  const items: T[] = [];
+type SqlValue = string | number | null;
+
+function buildValues(rows: SqlValue[][], casts: string[]): { clause: string; params: SqlValue[] } {
+  const params: SqlValue[] = [];
+  const clause = rows.map((row) => {
+    if (row.length !== casts.length) throw new Error('Bulk insert row has an unexpected column count.');
+    const placeholders = row.map((value, index) => {
+      params.push(value);
+      return '$' + params.length + '::' + casts[index];
+    });
+    return '(' + placeholders.join(', ') + ')';
+  }).join(', ');
+  return { clause, params };
+}
+
+/** Read NDJSON incrementally; memory is bounded by batchSize. */
+export async function* readNdjsonBatches<T>(
+  filePath: string,
+  batchSize = 500
+): AsyncGenerator<T[]> {
+  if (!Number.isInteger(batchSize) || batchSize < 1) {
+    throw new Error('NDJSON batchSize must be a positive integer.');
+  }
+  if (!fs.existsSync(filePath)) return;
+
   const rl = readline.createInterface({
     input: fs.createReadStream(filePath, 'utf8'),
     crlfDelay: Infinity,
   });
-  for await (const line of rl) {
-    if (line.trim()) {
-      items.push(JSON.parse(line) as T);
+  let batch: T[] = [];
+  try {
+    for await (const line of rl) {
+      if (!line.trim()) continue;
+      batch.push(JSON.parse(line) as T);
+      if (batch.length >= batchSize) {
+        yield batch;
+        batch = [];
+      }
     }
+    if (batch.length > 0) yield batch;
+  } finally {
+    rl.close();
   }
-  return items;
+}
+
+async function inTransaction(client: PoolClient, operation: () => Promise<void>): Promise<void> {
+  await client.query('BEGIN');
+  try {
+    await operation();
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  }
+}
+
+async function insertVerseBatch(
+  client: PoolClient,
+  rows: Array<[number, number, string, string, string]>
+): Promise<void> {
+  if (rows.length === 0) return;
+  const values = buildValues(rows, ['integer', 'integer', 'text', 'text', 'text']);
+  await client.query(
+    [
+      'INSERT INTO poem_verses (poem_id, verse_order, sadr, ajuz, normalized_text)',
+      'VALUES ' + values.clause,
+      'ON CONFLICT (poem_id, verse_order) DO UPDATE',
+      'SET sadr = EXCLUDED.sadr, ajuz = EXCLUDED.ajuz, normalized_text = EXCLUDED.normalized_text',
+    ].join('\n'),
+    values.params
+  );
 }
 
 async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Promise<void> {
   const client = await pool.connect();
   try {
-    await client.query('BEGIN');
-
-    const eras = await readNdjson<{ sourceId: number; nameAr: string; slug: string }>(
-      path.join(cleanedDir, 'eras.ndjson')
-    );
-    for (const era of eras) {
+    // Reference tables are streamed and inserted with multi-row statements.
+    for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
+      path.join(cleanedDir, 'eras.ndjson'), 500
+    )) {
+      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr, item.slug, '']), [
+        'integer', 'text', 'text', 'text', 'text',
+      ]);
       await client.query(
-        `INSERT INTO eras (source_id, slug, name_ar, name_en, period_label)
-         VALUES ($1, $2, $3, $4, '')
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar`,
-        [era.sourceId, era.slug, era.nameAr, era.slug]
+        [
+          'INSERT INTO eras (source_id, slug, name_ar, name_en, period_label)',
+          'VALUES ' + values.clause,
+          'ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const meters = await readNdjson<{ sourceId: number; nameAr: string; slug: string }>(
-      path.join(cleanedDir, 'meters.ndjson')
-    );
-    for (const meter of meters) {
+    for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
+      path.join(cleanedDir, 'meters.ndjson'), 500
+    )) {
+      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr]), [
+        'integer', 'text', 'text',
+      ]);
       await client.query(
-        `INSERT INTO meters (source_id, slug, name_ar)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar`,
-        [meter.sourceId, meter.slug, meter.nameAr]
+        [
+          'INSERT INTO meters (source_id, slug, name_ar)',
+          'VALUES ' + values.clause,
+          'ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const themes = await readNdjson<{ sourceId: number; nameAr: string; slug: string }>(
-      path.join(cleanedDir, 'themes.ndjson')
-    );
-    for (const theme of themes) {
+    for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
+      path.join(cleanedDir, 'themes.ndjson'), 500
+    )) {
+      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr]), [
+        'integer', 'text', 'text',
+      ]);
       await client.query(
-        `INSERT INTO themes (source_id, slug, name_ar)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar`,
-        [theme.sourceId, theme.slug, theme.nameAr]
+        [
+          'INSERT INTO themes (source_id, slug, name_ar)',
+          'VALUES ' + values.clause,
+          'ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const rhymes = await readNdjson<{ sourceId: number; letter: string; nameAr: string }>(
-      path.join(cleanedDir, 'rhymes.ndjson')
-    );
-    for (const rhyme of rhymes) {
+    for await (const batch of readNdjsonBatches<{ sourceId: number; letter: string; nameAr: string }>(
+      path.join(cleanedDir, 'rhymes.ndjson'), 500
+    )) {
+      const values = buildValues(batch.map((item) => [item.sourceId, item.letter, item.nameAr]), [
+        'integer', 'text', 'text',
+      ]);
       await client.query(
-        `INSERT INTO rhymes (source_id, letter, name_ar)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (source_id) DO UPDATE SET letter = EXCLUDED.letter, name_ar = EXCLUDED.name_ar`,
-        [rhyme.sourceId, rhyme.letter, rhyme.nameAr]
+        [
+          'INSERT INTO rhymes (source_id, letter, name_ar)',
+          'VALUES ' + values.clause,
+          'ON CONFLICT (source_id) DO UPDATE SET letter = EXCLUDED.letter, name_ar = EXCLUDED.name_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const poemTypes = await readNdjson<{ sourceId: number; nameAr: string; slug: string }>(
-      path.join(cleanedDir, 'types.ndjson')
-    );
-    for (const type of poemTypes) {
+    for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
+      path.join(cleanedDir, 'types.ndjson'), 500
+    )) {
+      const values = buildValues(batch.map((item) => [item.sourceId, item.slug, item.nameAr]), [
+        'integer', 'text', 'text',
+      ]);
       await client.query(
-        `INSERT INTO poem_types (source_id, slug, name_ar)
-         VALUES ($1, $2, $3)
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar`,
-        [type.sourceId, type.slug, type.nameAr]
+        [
+          'INSERT INTO poem_types (source_id, slug, name_ar)',
+          'VALUES ' + values.clause,
+          'ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const poets = await readNdjson<{
+    // Poets are inserted in bounded batches after their eras exist.
+    for await (const batch of readNdjsonBatches<{
       sourceId: number;
       slug: string;
       nameAr: string;
       eraSourceId: number;
       bioAr: string;
-    }>(path.join(cleanedDir, 'poets.ndjson'));
-
-    for (const poet of poets) {
+    }>(path.join(cleanedDir, 'poets.ndjson'), 300)) {
+      const values = buildValues(batch.map((item) => [
+        item.sourceId, item.slug, item.nameAr, item.bioAr, item.eraSourceId,
+      ]), ['integer', 'text', 'text', 'text', 'integer']);
       await client.query(
-        `INSERT INTO poets (source_id, slug, name_ar, era_id, bio_ar)
-         SELECT $1, $2, $3, e.id, $4
-         FROM eras e WHERE e.source_id = $5
-         ON CONFLICT (source_id) DO UPDATE SET name_ar = EXCLUDED.name_ar, era_id = EXCLUDED.era_id, bio_ar = EXCLUDED.bio_ar`,
-        [poet.sourceId, poet.slug, poet.nameAr, poet.bioAr, poet.eraSourceId]
+        [
+          'INSERT INTO poets (source_id, slug, name_ar, era_id, bio_ar)',
+          'SELECT v.source_id, v.slug, v.name_ar, e.id, v.bio_ar',
+          'FROM (VALUES ' + values.clause + ') AS v(source_id, slug, name_ar, bio_ar, era_source_id)',
+          'JOIN eras e ON e.source_id = v.era_source_id',
+          'WHERE TRUE',
+          'ON CONFLICT (source_id) DO UPDATE',
+          'SET name_ar = EXCLUDED.name_ar, era_id = EXCLUDED.era_id, bio_ar = EXCLUDED.bio_ar',
+        ].join('\n'),
+        values.params
       );
     }
 
-    const poems = await readNdjson<{
+    // Keep each transaction to 100 poems and at most 500 verse rows per SQL statement.
+    // A failed run can be repeated safely because all writes are source_id/idempotent upserts.
+    for await (const poems of readNdjsonBatches<{
       sourceId: number;
       titleAr: string;
       poetSourceId: number;
+      eraSourceId: number | null;
       meterSourceId: number | null;
       themeSourceId: number | null;
       rhymeSourceId: number | null;
       typeSourceId: number | null;
       verses: Array<{ sadr: string; ajuz: string }>;
-    }>(path.join(cleanedDir, 'poems.ndjson'));
+    }>(path.join(cleanedDir, 'poems.ndjson'), 100)) {
+      await inTransaction(client, async () => {
+        const poemValues = buildValues(poems.map((poem) => [
+          poem.sourceId,
+          poem.titleAr,
+          poem.poetSourceId,
+          poem.eraSourceId ?? null,
+          poem.meterSourceId ?? null,
+          poem.themeSourceId ?? null,
+          poem.rhymeSourceId ?? null,
+          poem.typeSourceId ?? null,
+          poem.verses.length,
+        ]), [
+          'integer', 'text', 'integer', 'integer', 'integer',
+          'integer', 'integer', 'integer', 'integer',
+        ]);
 
-    for (const poem of poems) {
-      const poemRes = await client.query<{ id: number }>(
-        `INSERT INTO poems (source_id, title_ar, poet_id, era_id, meter_id, theme_id, rhyme_id, poem_type_id, verse_count)
-         SELECT $1, $2, p.id, p.era_id,
-           (SELECT id FROM meters WHERE source_id = $4 LIMIT 1),
-           (SELECT id FROM themes WHERE source_id = $5 LIMIT 1),
-           (SELECT id FROM rhymes WHERE source_id = $6 LIMIT 1),
-           (SELECT id FROM poem_types WHERE source_id = $7 LIMIT 1),
-           $8
-         FROM poets p WHERE p.source_id = $3
-         ON CONFLICT (source_id) DO UPDATE SET
-           title_ar = EXCLUDED.title_ar,
-           poet_id = EXCLUDED.poet_id,
-           era_id = EXCLUDED.era_id,
-           meter_id = EXCLUDED.meter_id,
-           theme_id = EXCLUDED.theme_id,
-           rhyme_id = EXCLUDED.rhyme_id,
-           poem_type_id = EXCLUDED.poem_type_id,
-           verse_count = EXCLUDED.verse_count
-         RETURNING id`,
-        [poem.sourceId, poem.titleAr, poem.poetSourceId, poem.meterSourceId, poem.themeSourceId, poem.rhymeSourceId, poem.typeSourceId, poem.verses.length]
-      );
-
-      const poemId = poemRes.rows[0]?.id;
-      if (!poemId) continue;
-
-      for (let idx = 0; idx < poem.verses.length; idx += 1) {
-        const v = poem.verses[idx];
-        await client.query(
-          `INSERT INTO poem_verses (poem_id, verse_order, sadr, ajuz, normalized_text)
-           VALUES ($1, $2, $3, $4, $5)
-           ON CONFLICT (poem_id, verse_order) DO UPDATE
-           SET sadr = EXCLUDED.sadr, ajuz = EXCLUDED.ajuz, normalized_text = EXCLUDED.normalized_text`,
-          [poemId, idx + 1, v.sadr, v.ajuz, normalizeArabicText(`${v.sadr} ${v.ajuz}`)]
+        const inserted = await client.query<{ source_id: number; id: number }>(
+          [
+            'INSERT INTO poems (source_id, title_ar, poet_id, era_id, meter_id, theme_id, rhyme_id, poem_type_id, verse_count)',
+            'SELECT v.source_id, v.title_ar, p.id, COALESCE(e.id, p.era_id), m.id, th.id, r.id, pt.id, v.verse_count',
+            'FROM (VALUES ' + poemValues.clause + ') AS v(',
+            '  source_id, title_ar, poet_source_id, era_source_id, meter_source_id,',
+            '  theme_source_id, rhyme_source_id, type_source_id, verse_count',
+            ')',
+            'JOIN poets p ON p.source_id = v.poet_source_id',
+            'LEFT JOIN eras e ON e.source_id = v.era_source_id',
+            'LEFT JOIN meters m ON m.source_id = v.meter_source_id',
+            'LEFT JOIN themes th ON th.source_id = v.theme_source_id',
+            'LEFT JOIN rhymes r ON r.source_id = v.rhyme_source_id',
+            'LEFT JOIN poem_types pt ON pt.source_id = v.type_source_id',
+            'WHERE TRUE',
+            'ON CONFLICT (source_id) DO UPDATE SET',
+            '  title_ar = EXCLUDED.title_ar, poet_id = EXCLUDED.poet_id, era_id = EXCLUDED.era_id,',
+            '  meter_id = EXCLUDED.meter_id, theme_id = EXCLUDED.theme_id, rhyme_id = EXCLUDED.rhyme_id,',
+            '  poem_type_id = EXCLUDED.poem_type_id, verse_count = EXCLUDED.verse_count',
+            'RETURNING source_id, id',
+          ].join('\n'),
+          poemValues.params
         );
-      }
-      // Remove stale trailing verses when a source poem has fewer verses on re-import.
-      await client.query('DELETE FROM poem_verses WHERE poem_id = $1 AND verse_order > $2', [poemId, poem.verses.length]);
-    }
+        const poemIds = new Map(inserted.rows.map((row) => [row.source_id, row.id]));
 
-    await client.query('COMMIT');
-  } catch (err) {
-    await client.query('ROLLBACK');
-    throw err;
+        const verseBatch: Array<[number, number, string, string, string]> = [];
+        const flushVerses = async () => {
+          if (verseBatch.length === 0) return;
+          await insertVerseBatch(client, verseBatch);
+          verseBatch.length = 0;
+        };
+
+        for (const poem of poems) {
+          const poemId = poemIds.get(poem.sourceId);
+          if (!poemId) continue;
+          for (let index = 0; index < poem.verses.length; index += 1) {
+            const verse = poem.verses[index];
+            verseBatch.push([
+              poemId,
+              index + 1,
+              verse.sadr,
+              verse.ajuz,
+              normalizeArabicText(verse.sadr + ' ' + verse.ajuz),
+            ]);
+            if (verseBatch.length >= 500) await flushVerses();
+          }
+        }
+        await flushVerses();
+
+        const staleRows = poems.map((poem) => {
+          const poemId = poemIds.get(poem.sourceId);
+          return poemId ? [poemId, poem.verses.length] as [number, number] : null;
+        }).filter((row): row is [number, number] => row !== null);
+
+        if (staleRows.length > 0) {
+          const staleValues = buildValues(staleRows, ['integer', 'integer']);
+          await client.query(
+            [
+              'DELETE FROM poem_verses pv',
+              'USING (VALUES ' + staleValues.clause + ') AS v(poem_id, verse_count)',
+              'WHERE pv.poem_id = v.poem_id AND pv.verse_order > v.verse_count',
+            ].join('\n'),
+            staleValues.params
+          );
+        }
+      });
+    }
   } finally {
     client.release();
   }

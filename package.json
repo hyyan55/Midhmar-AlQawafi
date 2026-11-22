@@ -14,7 +14,8 @@
     "test": "vitest run",
     "db:migrate": "tsx database/scripts/migrate.ts",
     "db:seed": "tsx database/scripts/seed.ts",
-    "db:import-qafiyah": "tsx database/scripts/import-qafiyah.ts"
+    "db:import-qafiyah": "tsx database/scripts/import-qafiyah.ts",
+    "db:test-qafiyah-sql": "tsx database/scripts/test-qafiyah-postgres.ts"
   },
   "dependencies": {
     "@capacitor/core": "^8.6.2",
