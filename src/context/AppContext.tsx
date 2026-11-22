@@ -595,6 +595,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           timezone: getUserTimezone(),
         });
       } catch {
+        // Preserve authenticated rounds locally so they can be synced after recovery.
+        if (user) {
+          const pendingItem: PendingSyncSession = {
+            // Reuse the server session ID so a timed-out successful completion cannot be counted twice.
+            operationId: activeGame.sessionId,
+            mode: activeGame.mode,
+            startedAt: activeGame.startedAtIso,
+            completedAt: new Date().toISOString(),
+            durationSeconds,
+            answers: activeGame.reviews.map((review, idx) => {
+              const question = activeGame.questions[idx];
+              return {
+                questionId: review.questionId,
+                poemId: question.poemId,
+                verseId: question.verseId,
+                selectedOptionId: review.selectedOptionId,
+                correctOptionId: review.correctOptionId,
+                isCorrect: review.isCorrect,
+                responseTimeMs: review.responseTimeMs,
+                promptAr: review.promptAr,
+                fullVerseSadr: review.fullVerseSadr,
+                fullVerseAjuz: review.fullVerseAjuz,
+                poetNameAr: review.poetNameAr,
+                poemTitleAr: review.poemTitleAr,
+                eraNameAr: review.eraNameAr,
+                meterNameAr: review.meterNameAr,
+                correctOptionLabel: review.correctOptionLabel,
+              };
+            }),
+          };
+          await offlineDb.enqueueSyncSession(pendingItem);
+          const pending = await offlineDb.getPendingSyncSessions();
+          setPendingSyncCount(pending.length);
+          void syncOfflineQueue();
+        }
+
         // Keep the results screen available even if the completion API is unreachable.
         const correctCount = activeGame.reviews.filter((review) => review.isCorrect).length;
         const xpEarned = activeGame.reviews.reduce((sum, review) => sum + review.pointsAwarded, 0);
@@ -676,7 +712,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
     if (user) {
       const pendingItem: PendingSyncSession = {
-        operationId: crypto.randomUUID ? crypto.randomUUID() : activeGame.sessionId,
+        operationId: activeGame.sessionId,
         mode: activeGame.mode,
         startedAt: activeGame.startedAtIso,
         completedAt: new Date().toISOString(),
@@ -741,7 +777,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLastResult(offlineResult);
     setActiveGame(null);
     setScreen('results');
-  }, [activeGame, guest.stats.currentStreak, guest.stats.totalXp, settings.soundEnabled, showNotice, user]);
+  }, [activeGame, guest.stats.currentStreak, guest.stats.totalXp, settings.soundEnabled, showNotice, syncOfflineQueue, user]);
 
   const abandonChallenge = useCallback(() => {
     setActiveGame(null);
