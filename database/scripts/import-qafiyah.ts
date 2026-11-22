@@ -279,12 +279,14 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
       user: process.env.PGUSER || undefined,
       password: process.env.PGPASSWORD || undefined,
       ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false,
-      max: 2,
-      connectionTimeoutMillis: 15000,
+      max: 1,
+      connectionTimeoutMillis: 20000,
+      keepAlive: true,
+      keepAliveInitialDelayMillis: 10000,
     });
 
     try {
-      await upsertCleanedNdjsonToPostgres(pool, cleanedDir);
+      await upsertWithRetry(pool, cleanedDir);
     } finally {
       await pool.end();
     }
@@ -340,13 +342,47 @@ export async function* readNdjsonBatches<T>(
   }
 }
 
+
+export function isRetryablePostgresError(error: unknown): boolean {
+  const candidate = error as { code?: string; message?: string; cause?: unknown };
+  const code = candidate?.code || '';
+  const message = candidate?.message || '';
+  const retryableCodes = new Set([
+    'ECONNRESET', 'ECONNABORTED', 'ETIMEDOUT', 'EPIPE',
+    'ENETUNREACH', 'EHOSTUNREACH', '57P01', '57P02', '57P03',
+    '08000', '08001', '08003', '08004', '08006', '08007', '08P01',
+  ]);
+  if (retryableCodes.has(code) || /connection terminated unexpectedly|socket hang up|server closed the connection/i.test(message)) {
+    return true;
+  }
+  return candidate?.cause ? isRetryablePostgresError(candidate.cause) : false;
+}
+
+async function upsertWithRetry(pool: Pool, cleanedDir: string, maxAttempts = 5): Promise<void> {
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      await upsertCleanedNdjsonToPostgres(pool, cleanedDir);
+      return;
+    } catch (error) {
+      if (!isRetryablePostgresError(error) || attempt === maxAttempts) throw error;
+      const delayMs = Math.min(2000 * (2 ** (attempt - 1)), 20000);
+      console.warn(`PostgreSQL connection interrupted; retrying import (attempt ${attempt + 1}/${maxAttempts}) in ${Math.round(delayMs / 1000)}s.`);
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+    }
+  }
+}
+
 async function inTransaction(client: PoolClient, operation: () => Promise<void>): Promise<void> {
   await client.query('BEGIN');
   try {
     await operation();
     await client.query('COMMIT');
   } catch (error) {
-    await client.query('ROLLBACK');
+    try {
+      await client.query('ROLLBACK');
+    } catch {
+      // The connection may already be gone; preserve the original operation error.
+    }
     throw error;
   }
 }
@@ -370,6 +406,11 @@ async function insertVerseBatch(
 
 async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Promise<void> {
   const client = await pool.connect();
+  let destroyClient = false;
+  // Prevent transient socket errors from becoming uncaught EventEmitter errors.
+  client.on('error', () => {
+    destroyClient = true;
+  });
   try {
     // Reference tables are streamed and inserted with multi-row statements.
     for await (const batch of readNdjsonBatches<{ sourceId: number; nameAr: string; slug: string }>(
@@ -573,8 +614,11 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
         }
       });
     }
+  } catch (error) {
+    destroyClient = true;
+    throw error;
   } finally {
-    client.release();
+    client.release(destroyClient);
   }
 }
 
