@@ -11,6 +11,7 @@ import {
 } from '../../packages/shared/src/index.ts';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
+import { uploadProfilePhoto } from '../services/firebase.ts';
 import { offlineDb } from '../storage/offlineDb.ts';
 import { formatDurationAr, getAvatarImageUrl } from '../utils/feedback.ts';
 
@@ -52,6 +53,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
   const [editBio, setEditBio] = useState(user?.profile.bio || '');
   const [editAvatar, setEditAvatar] = useState(activeAvatarId);
   const [saving, setSaving] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     setEditName(activeDisplayName);
@@ -98,6 +101,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
           username: editUsername,
           bio: editBio,
           avatarId: editAvatar,
+          ...(selectedPhoto ? { avatarUrl: await uploadProfilePhoto(selectedPhoto, user.profile.userId) } : {}),
         });
         refreshUserFromServer(updated);
         showNotice('success', 'تم تحديث بيانات الملف الشخصي.');
@@ -109,6 +113,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
         });
         showNotice('success', 'تم حفظ بيانات الزائر محلياً.');
       }
+      setSelectedPhoto(null);
+      setPhotoPreview(null);
       setEditing(false);
     } catch (err) {
       showNotice('error', err instanceof Error ? err.message : 'تعذر حفظ التعديلات');
@@ -131,7 +137,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex items-center gap-5">
             <img
-              src={getAvatarImageUrl(activeAvatarId)}
+              src={user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId)}
               alt={activeDisplayName}
               referrerPolicy="no-referrer"
               className="w-20 h-20 rounded-2xl object-cover border border-[#DFD9CE] dark:border-[#2A3542] shrink-0"
@@ -214,6 +220,23 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
                   placeholder="شغوف بشعر الحكمة والمعلقات..."
                   className="w-full px-3.5 py-2.5 rounded-xl bg-[#F8F6F1] dark:bg-[#0F1419] border border-[#DFD9CE] dark:border-[#2A3542] text-sm"
                 />
+              </div>
+            )}
+
+            {user && (
+              <div>
+                <label className="block text-sm font-medium mb-2">الصورة الشخصية</label>
+                <div className="flex items-center gap-4">
+                  <img src={photoPreview || user.profile.avatarUrl || getAvatarImageUrl(activeAvatarId)} alt="معاينة الصورة الشخصية" className="w-16 h-16 rounded-full object-cover border border-[#DFD9CE] dark:border-[#2A3542]" />
+                  <div className="space-y-2 min-w-0">
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={(event) => {
+                      const file = event.target.files?.[0] || null;
+                      setSelectedPhoto(file);
+                      setPhotoPreview(file ? URL.createObjectURL(file) : null);
+                    }} className="block w-full text-xs file:ml-3 file:px-3 file:py-2 file:rounded-lg file:border-0 file:bg-[#EFECE4] dark:file:bg-[#1E2732]" />
+                    <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">JPG أو PNG أو WebP، بحد أقصى 8 ميجابايت. تُضغط الصورة تلقائياً قبل الرفع.</p>
+                  </div>
+                </div>
               </div>
             )}
 
