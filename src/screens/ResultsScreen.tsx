@@ -14,11 +14,11 @@ export const ResultsScreen: React.FC = () => {
   if (!lastResult) {
     return (
       <div className="max-w-3xl mx-auto px-4 py-12 text-center space-y-4">
-        <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">لا توجد نتيجة جولة حالية.</p>
+        <p className="text-sm text-[#697586] dark:text-[#C0CAD6]">لا توجد نتيجة جولة حالية.</p>
         <button
           type="button"
           onClick={() => navigate('modes')}
-          className="px-5 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
+          className="px-5 py-2.5 rounded-xl bg-[#14243B] dark:bg-[#C6A15B] text-white dark:text-[#14243B] text-sm font-semibold min-h-[44px]"
         >
           اختر تحدياً
         </button>
@@ -32,10 +32,10 @@ export const ResultsScreen: React.FC = () => {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-8">
       {/* Summary Header Card */}
-      <section className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-6 sm:p-8 space-y-6">
+      <section className="rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-6 sm:p-8 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="space-y-1">
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">
               نتيجة الجولة · {GAME_MODES_META[lastResult.mode].titleAr}
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold font-poetry">
@@ -48,10 +48,10 @@ export const ResultsScreen: React.FC = () => {
           </div>
 
           <div className="text-left">
-            <div className="text-3xl font-bold font-mono-tabular text-[#14284B] dark:text-[#E0B84F]">
+            <div className="text-3xl font-bold font-mono-tabular text-[#14243B] dark:text-[#C6A15B]">
               +{lastResult.xpEarned} XP
             </div>
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">
               المستوى <span className="font-mono-tabular">{lastResult.newLevel}</span>
               {lastResult.newLevel > lastResult.previousLevel && ' · ترقية جديدة!'}
             </div>
@@ -59,24 +59,24 @@ export const ResultsScreen: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2">
-          <div className="p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448]">
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">الإجابات الصحيحة</div>
-            <div className="text-xl font-bold font-mono-tabular mt-1 text-[#14284B] dark:text-[#E0B84F]">
+          <div className="p-4 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">الإجابات الصحيحة</div>
+            <div className="text-xl font-bold font-mono-tabular mt-1 text-[#14243B] dark:text-[#C6A15B]">
               {lastResult.correctCount}
             </div>
           </div>
-          <div className="p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448]">
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">الإجابات الخاطئة</div>
+          <div className="p-4 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">الإجابات الخاطئة</div>
             <div className="text-xl font-bold font-mono-tabular mt-1 text-red-600 dark:text-red-400">
               {lastResult.incorrectCount}
             </div>
           </div>
-          <div className="p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448]">
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">نسبة الدقة</div>
+          <div className="p-4 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">نسبة الدقة</div>
             <div className="text-xl font-bold font-mono-tabular mt-1">{lastResult.accuracy}%</div>
           </div>
-          <div className="p-4 rounded-xl bg-[#F7F3E8] dark:bg-[#102448]">
-            <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">الزمن المستغرق</div>
+          <div className="p-4 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B]">
+            <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">الزمن المستغرق</div>
             <div className="text-xl font-bold font-mono-tabular mt-1">
               {formatDurationAr(lastResult.durationSeconds)}
             </div>
@@ -85,23 +85,23 @@ export const ResultsScreen: React.FC = () => {
 
         {/* Level Progress */}
         <div className="space-y-2">
-          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
+          <div className="flex items-center justify-between text-xs text-[#697586] dark:text-[#C0CAD6]">
             <span>تقدم المستوى {lastResult.newLevel}</span>
             <span className="font-mono-tabular">
               {lastResult.newTotalXp} / {nextLevelXp} XP
             </span>
           </div>
-          <div className="h-2.5 rounded-full bg-[#EEE6D4] dark:bg-[#102448] overflow-hidden">
+          <div className="h-2.5 rounded-full bg-[#EAE2D2] dark:bg-[#14243B] overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#14284B] dark:bg-[#E0B84F] transition-all duration-300"
+              className="h-full rounded-full bg-[#14243B] dark:bg-[#C6A15B] transition-all duration-300"
               style={{ width: `${levelProgress}%` }}
             />
           </div>
         </div>
 
         {lastResult.newlyUnlockedAchievements.length > 0 && (
-          <div className="p-4 rounded-xl bg-[#EEE6D4] dark:bg-[#102448] space-y-2">
-            <div className="flex items-center gap-2 text-sm font-semibold text-[#B47B1B] dark:text-[#E5A93C]">
+          <div className="p-4 rounded-xl bg-[#EAE2D2] dark:bg-[#14243B] space-y-2">
+            <div className="flex items-center gap-2 text-sm font-semibold text-[#9C7940] dark:text-[#C6A15B]">
               <Award className="w-4 h-4" />
               <span>أوسمة مفتوحة حديثاً</span>
             </div>
@@ -119,7 +119,7 @@ export const ResultsScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => void startChallenge(lastResult.mode === 'daily_challenge' ? 'who_said' : lastResult.mode)}
-            className="px-5 py-3 rounded-xl bg-[#14284B] hover:bg-[#0D1D39] dark:bg-[#E0B84F] dark:hover:bg-[#C69B2F] text-white dark:text-[#102448] font-semibold text-sm flex items-center gap-2 min-h-[46px]"
+            className="px-5 py-3 rounded-xl bg-[#14243B] hover:bg-[#0C192B] dark:bg-[#C6A15B] dark:hover:bg-[#A98543] text-white dark:text-[#14243B] font-semibold text-sm flex items-center gap-2 min-h-[46px]"
           >
             <RotateCcw className="w-4 h-4" />
             <span>جولة جديدة</span>
@@ -127,7 +127,7 @@ export const ResultsScreen: React.FC = () => {
           <button
             type="button"
             onClick={() => navigate('home')}
-            className="px-5 py-3 rounded-xl bg-[#EEE6D4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-sm font-medium min-h-[46px]"
+            className="px-5 py-3 rounded-xl bg-[#EAE2D2] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-sm font-medium min-h-[46px]"
           >
             العودة للرئيسية
           </button>
@@ -141,15 +141,15 @@ export const ResultsScreen: React.FC = () => {
           {lastResult.reviews.map((rev, idx) => (
             <div
               key={`${rev.questionId}_${idx}`}
-              className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5 space-y-3"
+              className="rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-5 space-y-3"
             >
-              <div className="flex items-center justify-between gap-4 text-xs text-[#626777] dark:text-[#C5CDDB]">
+              <div className="flex items-center justify-between gap-4 text-xs text-[#697586] dark:text-[#C0CAD6]">
                 <span>
                   سؤال {idx + 1} · {rev.poetNameAr} · {rev.eraNameAr}
                 </span>
                 <span
                   className={`flex items-center gap-1 font-semibold ${
-                    rev.isCorrect ? 'text-[#14284B] dark:text-[#E0B84F]' : 'text-red-600 dark:text-red-400'
+                    rev.isCorrect ? 'text-[#14243B] dark:text-[#C6A15B]' : 'text-red-600 dark:text-red-400'
                   }`}
                 >
                   {rev.isCorrect ? (
@@ -170,8 +170,8 @@ export const ResultsScreen: React.FC = () => {
                 {rev.fullVerseSadr} — {rev.fullVerseAjuz}
               </div>
 
-              <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
-                الإجابة الصحيحة: <strong className="text-[#17233A] dark:text-[#F7F3E8]">{rev.correctOptionLabel}</strong> · قصيدة: {rev.poemTitleAr}
+              <div className="text-xs text-[#697586] dark:text-[#C0CAD6]">
+                الإجابة الصحيحة: <strong className="text-[#17233A] dark:text-[#F5F1E8]">{rev.correctOptionLabel}</strong> · قصيدة: {rev.poemTitleAr}
               </div>
             </div>
           ))}
