@@ -282,6 +282,28 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               نسيت كلمة المرور؟
             </button>
           )}
+          {mode === 'login' && (
+            <button
+              type="button"
+              disabled={submitting || !email.trim() || !backendAvailable}
+              onClick={async () => {
+                setSubmitting(true);
+                setErrorMessage(null);
+                setInfoMessage(null);
+                try {
+                  const res = await apiClient.resendVerification(email.trim());
+                  setInfoMessage(res.message);
+                } catch (err) {
+                  setErrorMessage(err instanceof Error ? err.message : 'تعذر إرسال رابط التأكيد');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="hover:underline py-2 disabled:opacity-50"
+            >
+              إعادة إرسال تأكيد البريد
+            </button>
+          )}
           {mode === 'forgot' && (
             <button
               type="button"
