@@ -101,7 +101,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onOpenAuthModal })
           username: editUsername,
           bio: editBio,
           avatarId: editAvatar,
-          ...(selectedPhoto ? { avatarUrl: await uploadProfilePhoto(selectedPhoto, user.profile.userId) } : {}),
+          ...(selectedPhoto ? { avatarUrl: await uploadProfilePhoto(selectedPhoto) } : {}),
         });
         refreshUserFromServer(updated);
         showNotice('success', 'تم تحديث بيانات الملف الشخصي.');
