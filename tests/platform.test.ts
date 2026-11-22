@@ -37,7 +37,7 @@ vi.mock('../server/src/services/firebaseAdmin.ts', () => ({
 
 vi.mock('../server/src/services/email.ts', () => ({
   sendEmail: vi.fn(async (_to: string, _subject: string, html: string) => {
-    const match = html.match(/token=([^&"\\s]+)/);
+    const match = html.match(/token=([^&"]+)/);
     if (match) testDbState.verificationToken = decodeURIComponent(match[1]);
   }),
 }));
