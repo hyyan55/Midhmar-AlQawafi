@@ -57,7 +57,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children, onOpenAuthMo
               onClick={() => navigate('home')}
               className="flex items-center gap-2.5 text-xl font-bold font-poetry tracking-tight text-[#14284B] dark:text-[#F7F3E8] whitespace-nowrap shrink-0 min-h-[44px] focus-visible:outline-2 focus-visible:outline-[#E0B84F]"
             >
-              <img src="/brand-mark.svg" alt="" className="w-9 h-9 rounded-lg" />
+              <img src="/brand-mark.webp" alt="" className="w-9 h-9 rounded-lg" />
               <span>{appName}</span>
             </button>
 
