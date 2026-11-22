@@ -194,7 +194,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 required
                 dir="ltr"
                 ref={emailInputRef}
-                defaultValue=""
+                defaultValue={emailRef.current}
                 onChange={(e) => { emailRef.current = e.target.value; }}
                 placeholder="reader@example.com"
                 className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
