@@ -388,7 +388,8 @@ router.post(
                streak_bonus_xp = $3,
                speed_bonus_xp = $4,
                duration_seconds = $5,
-               completed_at = $6
+               completed_at = $6,
+               operation_id = COALESCE(operation_id, $8)
            WHERE id = $7`,
           [
             progression.rewards.correctCount,
@@ -397,6 +398,7 @@ router.post(
             progression.rewards.speedBonusXp,
             parsed.durationSeconds,
             new Date().toISOString(),
+            session.id,
             session.id,
           ]
         );
