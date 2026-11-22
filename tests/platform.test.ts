@@ -22,6 +22,19 @@ import type { Server } from 'node:http';
 const testDbState = vi.hoisted(() => ({ path: '', verificationToken: '' }));
 
 // Keep API tests independent from external SMTP availability.
+vi.mock('../server/src/services/firebaseAdmin.ts', () => ({
+  verifyFirebaseIdToken: vi.fn(async (idToken: string) => {
+    if (idToken === 'firebase-test-unverified') {
+      return { uid: 'firebase-test-uid', email: 'firebase-user@example.com', email_verified: false };
+    }
+    if (idToken === 'firebase-test-verified') {
+      return { uid: 'firebase-test-uid', email: 'firebase-user@example.com', email_verified: true };
+    }
+    throw new Error('Invalid Firebase token');
+  }),
+  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('../server/src/services/email.ts', () => ({
   sendEmail: vi.fn(async (_to: string, _subject: string, html: string) => {
     const match = html.match(/token=([^&"\\s]+)/);
@@ -308,6 +321,48 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     };
     expect(completeBody.data.totalQuestions).toBe(5);
     expect(completeBody.data.reviews).toHaveLength(5);
+  });
+
+  it('creates a Firebase account and issues an app session only after email verification', async () => {
+    const registration = await fetch(`${baseUrl}/api/auth/firebase/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken: 'firebase-test-unverified',
+        displayName: 'Firebase Tester',
+        username: 'firebase_tester',
+        timezone: 'UTC',
+      }),
+    });
+    expect(registration.status).toBe(201);
+
+    const pendingUser = await getDb(testDbPath).queryOne<{
+      firebase_uid: string;
+      is_active: number | boolean;
+    }>('SELECT firebase_uid, is_active FROM users WHERE email = $1', ['firebase-user@example.com']);
+    expect(pendingUser?.firebase_uid).toBe('firebase-test-uid');
+    expect(Number(pendingUser?.is_active)).toBe(0);
+
+    const unverifiedSession = await fetch(`${baseUrl}/api/auth/firebase/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: 'firebase-test-unverified' }),
+    });
+    expect(unverifiedSession.status).toBe(403);
+
+    const verifiedSession = await fetch(`${baseUrl}/api/auth/firebase/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: 'firebase-test-verified' }),
+    });
+    expect(verifiedSession.status).toBe(200);
+    const sessionBody = (await verifiedSession.json()) as {
+      success: boolean;
+      data: { accessToken: string; user: { profile: { username: string } } };
+    };
+    expect(sessionBody.success).toBe(true);
+    expect(sessionBody.data.accessToken).toBeTruthy();
+    expect(sessionBody.data.user.profile.username).toBe('firebase_tester');
   });
 
   it('prevents duplicate offline sync submissions via operationId idempotency', async () => {
