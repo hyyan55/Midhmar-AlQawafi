@@ -233,7 +233,13 @@ router.post(
           'SELECT operation_id FROM sync_operations WHERE operation_id = $1',
           [item.operationId]
         );
-        if (existingOp) {
+        const existingSession = existingOp
+          ? null
+          : await tx.queryOne<{ operation_id: string }>(
+              'SELECT operation_id FROM game_sessions WHERE operation_id = $1 AND user_id = $2',
+              [item.operationId, userId]
+            );
+        if (existingOp || existingSession) {
           skippedOperationIds.push(item.operationId);
           continue;
         }
