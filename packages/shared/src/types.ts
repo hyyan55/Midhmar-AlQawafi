@@ -147,6 +147,7 @@ export interface UserProfile {
   displayName: string;
   email: string;
   avatarId: string;
+  avatarUrl: string | null;
   bio: string;
   timezone: string;
   createdAt: string;
@@ -220,6 +221,7 @@ export interface LeaderboardEntry {
   username: string;
   displayName: string;
   avatarId: string;
+  avatarUrl: string | null;
   level: number;
   xp: number;
   accuracy: number;
