@@ -157,7 +157,7 @@ export async function applySessionProgressionTx(
     level: number;
     current_streak: number;
     longest_streak: number;
-    last_played_date: string | null;
+    last_played_date: string | Date | null;
     games_played: number;
     total_questions: number;
     correct_answers: number;
