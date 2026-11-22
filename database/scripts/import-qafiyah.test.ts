@@ -1,7 +1,11 @@
 import { describe, expect, it } from 'vitest';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import {
   hasArabicLetters,
   normalizeArabicText,
+  readNdjsonBatches,
   splitQafiyahPoemVerses,
 } from './import-qafiyah.ts';
 
@@ -33,5 +37,29 @@ describe('Qafiyah verse parsing', () => {
   it('rejects incomplete or non-Arabic input', () => {
     expect(splitQafiyahPoemVerses('صدر البيت فقط')).toEqual([]);
     expect(splitQafiyahPoemVerses('hello*world')).toEqual([]);
+  });
+});
+
+
+describe('NDJSON batch reader', () => {
+  it('streams records in bounded batches and preserves the final partial batch', async () => {
+    const directory = mkdtempSync(join(tmpdir(), 'qafiyah-ndjson-'));
+    const filePath = join(directory, 'sample.ndjson');
+    writeFileSync(filePath, '{"id":1}\n\n{"id":2}\n{"id":3}\n{"id":4}\n{"id":5}\n', 'utf8');
+
+    try {
+      const batches: Array<Array<{ id: number }>> = [];
+      for await (const batch of readNdjsonBatches<{ id: number }>(filePath, 2)) {
+        batches.push(batch);
+      }
+      expect(batches).toEqual([[{ id: 1 }, { id: 2 }], [{ id: 3 }, { id: 4 }], [{ id: 5 }]]);
+    } finally {
+      rmSync(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('rejects a non-positive batch size', async () => {
+    const batches = readNdjsonBatches('unused.ndjson', 0);
+    await expect(batches.next()).rejects.toThrow('batchSize must be a positive integer');
   });
 });
