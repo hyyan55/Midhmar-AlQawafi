@@ -30,9 +30,9 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onRegiste
           </div>
           <div className="space-y-2 sm:space-y-3">
             <button type="button" onClick={onLogin} className="w-full min-h-11 sm:min-h-14 rounded-xl bg-[#14243B] hover:bg-[#0C192B] text-[#F5F1E8] font-semibold flex items-center justify-center gap-2 transition-all shadow-lg shadow-[#14243B]/15 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#C6A15B]"><LogIn className="w-4 h-4" /> تسجيل الدخول</button>
-            <button type="button" onClick={onRegister} className="w-full min-h-14 rounded-xl border border-[#C9B77E] bg-white/60 hover:bg-white text-[#14243B] font-semibold flex items-center justify-center gap-2 transition-colors"><UserPlus className="w-4 h-4" /> إنشاء حساب جديد</button>
+            <button type="button" onClick={onRegister} className="w-full min-h-11 sm:min-h-14 rounded-xl border border-[#C9B77E] bg-white/60 hover:bg-white text-[#14243B] font-semibold flex items-center justify-center gap-2 transition-colors"><UserPlus className="w-4 h-4" /> إنشاء حساب جديد</button>
             <div className="flex items-center gap-3 py-1 sm:py-2 text-xs text-[#92919A]"><span className="h-px flex-1 bg-[#DED5C2]" /> أو <span className="h-px flex-1 bg-[#DED5C2]" /></div>
-            <button type="button" onClick={onGuest} className="w-full min-h-14 rounded-xl bg-[#EAE2D2] hover:bg-[#E6DCC5] text-[#34415A] font-semibold flex items-center justify-center gap-2 transition-colors"><UserRound className="w-4 h-4" /> المتابعة كضيف</button>
+            <button type="button" onClick={onGuest} className="w-full min-h-11 sm:min-h-14 rounded-xl bg-[#EAE2D2] hover:bg-[#E6DCC5] text-[#34415A] font-semibold flex items-center justify-center gap-2 transition-colors"><UserRound className="w-4 h-4" /> المتابعة كضيف</button>
           </div>
           <p className="mt-3 sm:mt-6 text-center text-[11px] sm:text-xs leading-5 sm:leading-6 text-[#777B86]">يمكنك البدء كضيف، ثم إنشاء حساب لاحقاً لحفظ تقدمك ومزامنته.</p>
         </div>
