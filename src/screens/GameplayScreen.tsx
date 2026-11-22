@@ -72,21 +72,21 @@ export const GameplayScreen: React.FC = () => {
           type="button"
           onClick={abandonChallenge}
           aria-label="إنهاء الجولة"
-          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] hover:border-red-400"
+          className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] hover:border-red-400"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex-1 space-y-1.5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>{GAME_MODES_META[activeGame.mode].titleAr}</span>
             <span className="font-mono-tabular font-semibold">
               السؤال {activeGame.currentIndex + 1} / {total}
             </span>
           </div>
-          <div className="h-2 rounded-full bg-[#EFECE4] dark:bg-[#171E26] overflow-hidden">
+          <div className="h-2 rounded-full bg-[#EEE6D4] dark:bg-[#172D50] overflow-hidden">
             <div
-              className="h-full rounded-full bg-[#0D6E52] dark:bg-[#18A87E] transition-all duration-300"
+              className="h-full rounded-full bg-[#14284B] dark:bg-[#E0B84F] transition-all duration-300"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -96,7 +96,7 @@ export const GameplayScreen: React.FC = () => {
           className={`min-h-[44px] px-3 rounded-xl border flex items-center gap-1.5 font-mono-tabular text-sm font-semibold ${
             secondsLeft <= 5 && !feedback
               ? 'bg-red-50 dark:bg-red-950/40 border-red-300 dark:border-red-800 text-red-700 dark:text-red-300'
-              : 'bg-white dark:bg-[#171E26] border-[#DFD9CE] dark:border-[#2A3542]'
+              : 'bg-white dark:bg-[#172D50] border-[#E8DEC8] dark:border-[#2B4164]'
           }`}
         >
           <Clock className="w-4 h-4" />
@@ -106,22 +106,22 @@ export const GameplayScreen: React.FC = () => {
 
       {/* Question Card */}
       <div className="flex-1 flex flex-col justify-center space-y-6 py-4">
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-6 sm:p-8 space-y-6">
-          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-6 sm:p-8 space-y-6">
+          <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#626777] dark:text-[#C5CDDB]">
             <span>{currentQ.promptAr}</span>
             {currentQ.meterNameAr && <span>{currentQ.meterNameAr}</span>}
           </div>
 
           <div className="py-4 px-2 text-center space-y-3">
-            <p className="font-poetry text-2xl sm:text-3xl leading-loose font-bold text-[#181A1B] dark:text-[#F3EFE6]">
+            <p className="font-poetry text-2xl sm:text-3xl leading-loose font-bold text-[#17233A] dark:text-[#F7F3E8]">
               {currentQ.verseSadr}
             </p>
             {currentQ.verseAjuz ? (
-              <p className="font-poetry text-2xl sm:text-3xl leading-loose font-bold text-[#181A1B] dark:text-[#F3EFE6]">
+              <p className="font-poetry text-2xl sm:text-3xl leading-loose font-bold text-[#17233A] dark:text-[#F7F3E8]">
                 {currentQ.verseAjuz}
               </p>
             ) : (
-              <p className="font-poetry text-xl text-[#5E615E] dark:text-[#A0A8B0]">
+              <p className="font-poetry text-xl text-[#626777] dark:text-[#C5CDDB]">
                 · · · · · · · · ·
               </p>
             )}
@@ -135,18 +135,18 @@ export const GameplayScreen: React.FC = () => {
             const isCorrectOption = feedback?.correctOptionId === opt.id;
 
             let styleClass =
-              'bg-white dark:bg-[#171E26] border-[#DFD9CE] dark:border-[#2A3542] hover:border-[#0D6E52] dark:hover:border-[#18A87E]';
+              'bg-white dark:bg-[#172D50] border-[#E8DEC8] dark:border-[#2B4164] hover:border-[#14284B] dark:hover:border-[#E0B84F]';
 
             if (feedback) {
               if (isCorrectOption) {
                 styleClass =
-                  'bg-emerald-50 dark:bg-emerald-950/50 border-[#0D6E52] dark:border-[#18A87E] text-emerald-950 dark:text-emerald-100';
+                  'bg-emerald-50 dark:bg-emerald-950/50 border-[#14284B] dark:border-[#E0B84F] text-emerald-950 dark:text-emerald-100';
               } else if (isSelected && !feedback.isCorrect) {
                 styleClass =
                   'bg-red-50 dark:bg-red-950/50 border-red-500 text-red-950 dark:text-red-100';
               } else {
                 styleClass =
-                  'bg-white/60 dark:bg-[#171E26]/60 border-[#DFD9CE] dark:border-[#2A3542] opacity-65';
+                  'bg-white/60 dark:bg-[#172D50]/60 border-[#E8DEC8] dark:border-[#2B4164] opacity-65';
               }
             }
 
@@ -159,7 +159,7 @@ export const GameplayScreen: React.FC = () => {
                 className={`w-full text-right px-5 py-4 rounded-2xl border transition-all flex items-center justify-between gap-4 min-h-[56px] ${styleClass}`}
               >
                 <div className="flex items-center gap-3.5 min-w-0">
-                  <span className="w-7 h-7 rounded-lg bg-[#EFECE4] dark:bg-[#0F1419] flex items-center justify-center text-xs font-mono-tabular font-semibold shrink-0">
+                  <span className="w-7 h-7 rounded-lg bg-[#EEE6D4] dark:bg-[#102448] flex items-center justify-center text-xs font-mono-tabular font-semibold shrink-0">
                     {idx + 1}
                   </span>
                   <div className="min-w-0">
@@ -171,7 +171,7 @@ export const GameplayScreen: React.FC = () => {
                       {opt.label}
                     </div>
                     {opt.secondaryLabel && (
-                      <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0] mt-0.5">
+                      <div className="text-xs text-[#626777] dark:text-[#C5CDDB] mt-0.5">
                         {opt.secondaryLabel}
                       </div>
                     )}
@@ -179,7 +179,7 @@ export const GameplayScreen: React.FC = () => {
                 </div>
 
                 {feedback && isCorrectOption && (
-                  <CheckCircle2 className="w-5 h-5 text-[#0D6E52] dark:text-[#18A87E] shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-[#14284B] dark:text-[#E0B84F] shrink-0" />
                 )}
                 {feedback && isSelected && !feedback.isCorrect && (
                   <XCircle className="w-5 h-5 text-red-600 dark:text-red-400 shrink-0" />
@@ -191,12 +191,12 @@ export const GameplayScreen: React.FC = () => {
 
         {/* Immediate Feedback & Next Button */}
         {feedback && (
-          <div className="rounded-2xl bg-[#EFECE4] dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5 space-y-4">
+          <div className="rounded-2xl bg-[#EEE6D4] dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5 space-y-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 font-semibold text-sm">
                 {feedback.isCorrect ? (
                   <>
-                    <CheckCircle2 className="w-5 h-5 text-[#0D6E52] dark:text-[#18A87E]" />
+                    <CheckCircle2 className="w-5 h-5 text-[#14284B] dark:text-[#E0B84F]" />
                     <span>إجابة صحيحة!</span>
                   </>
                 ) : (
@@ -207,15 +207,15 @@ export const GameplayScreen: React.FC = () => {
                 )}
               </div>
               {feedback.pointsAwarded > 0 && (
-                <span className="font-mono-tabular text-sm font-bold text-[#0D6E52] dark:text-[#18A87E]">
+                <span className="font-mono-tabular text-sm font-bold text-[#14284B] dark:text-[#E0B84F]">
                   +{feedback.pointsAwarded} XP
                 </span>
               )}
             </div>
 
-            <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0] space-y-1">
+            <div className="text-xs text-[#626777] dark:text-[#C5CDDB] space-y-1">
               <div>
-                القائل: <strong className="text-[#181A1B] dark:text-[#F3EFE6]">{feedback.poetNameAr}</strong> ·{' '}
+                القائل: <strong className="text-[#17233A] dark:text-[#F7F3E8]">{feedback.poetNameAr}</strong> ·{' '}
                 {feedback.eraNameAr}
                 {feedback.meterNameAr ? ` · ${feedback.meterNameAr}` : ''}
               </div>
@@ -226,7 +226,7 @@ export const GameplayScreen: React.FC = () => {
               type="button"
               disabled={submitting}
               onClick={handleNext}
-              className="w-full py-3.5 px-5 rounded-xl bg-[#0D6E52] hover:bg-[#0A5740] dark:bg-[#18A87E] dark:hover:bg-[#14906B] text-white dark:text-[#0F1419] font-semibold text-sm transition-colors flex items-center justify-center gap-2 min-h-[48px]"
+              className="w-full py-3.5 px-5 rounded-xl bg-[#14284B] hover:bg-[#0D1D39] dark:bg-[#E0B84F] dark:hover:bg-[#C69B2F] text-white dark:text-[#102448] font-semibold text-sm transition-colors flex items-center justify-center gap-2 min-h-[48px]"
             >
               <span>{isLast ? 'عرض النتيجة النهائية' : 'السؤال التالي'}</span>
               <ArrowLeft className="w-4 h-4" />
