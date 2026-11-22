@@ -79,13 +79,13 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center overflow-y-auto overscroll-contain p-2 sm:p-4 bg-black/50 backdrop-blur-sm"
       role="dialog"
       aria-modal="true"
       aria-label="إدارة الحساب"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-6 shadow-xl">
-        <div className="flex items-center justify-between gap-4 mb-5">
+      <div className="w-full max-w-md max-h-[calc(100dvh-1rem)] sm:max-h-[calc(100dvh-2rem)] overflow-y-auto overscroll-contain rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-4 sm:p-6 shadow-xl">
+        <div className="flex items-center justify-between gap-3 mb-3 sm:mb-4">
           <h2 className="text-xl font-bold font-poetry">
             {mode === 'login' && 'تسجيل الدخول'}
             {mode === 'register' && 'إنشاء حساب جديد'}
@@ -109,7 +109,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         )}
 
         {(mode === 'login' || mode === 'register') && (
-          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#EAE2D2] dark:bg-[#14243B] mb-5">
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#EAE2D2] dark:bg-[#14243B] mb-3 sm:mb-4">
             <button
               type="button"
               onClick={() => {
@@ -153,22 +153,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-2.5 sm:space-y-3">
           {mode === 'register' && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1.5">الاسم الظاهر</label>
+                <label className="block text-xs sm:text-sm font-medium mb-1">الاسم الظاهر</label>
                 <input
                   type="text"
                   required
                   value={displayName}
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="مثال: سيف الدين الكندي"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
+                  className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">اسم المستخدم (بالإنجليزية)</label>
+                <label className="block text-xs sm:text-sm font-medium mb-1">اسم المستخدم (بالإنجليزية)</label>
                 <input
                   type="text"
                   required
@@ -176,7 +176,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="saif_alkindi"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
+                  className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
                 />
               </div>
             </>
@@ -184,7 +184,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
           {mode !== 'reset' && (
             <div>
-              <label className="block text-sm font-medium mb-1.5">البريد الإلكتروني</label>
+              <label className="block text-xs sm:text-sm font-medium mb-1">البريد الإلكتروني</label>
               <input
                 type="email"
                 required
@@ -192,14 +192,14 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="reader@example.com"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
+                className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
               />
             </div>
           )}
 
           {(mode === 'login' || mode === 'register') && (
             <div>
-              <label className="block text-sm font-medium mb-1.5">كلمة المرور</label>
+              <label className="block text-xs sm:text-sm font-medium mb-1">كلمة المرور</label>
               <input
                 type="password"
                 required
@@ -207,7 +207,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="٨ أحرف على الأقل"
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
+                className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
               />
             </div>
           )}
@@ -215,25 +215,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           {mode === 'reset' && (
             <>
               <div>
-                <label className="block text-sm font-medium mb-1.5">رمز الاستعادة</label>
+                <label className="block text-xs sm:text-sm font-medium mb-1">رمز الاستعادة</label>
                 <input
                   type="text"
                   required
                   dir="ltr"
                   value={resetToken}
                   onChange={(e) => setResetToken(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm text-left"
+                  className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm text-left"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1.5">كلمة المرور الجديدة</label>
+                <label className="block text-xs sm:text-sm font-medium mb-1">كلمة المرور الجديدة</label>
                 <input
                   type="password"
                   required
                   minLength={8}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm"
+                  className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm"
                 />
               </div>
             </>
@@ -270,7 +270,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </button>
         </form>
 
-        <div className="mt-4 flex items-center justify-between text-xs text-[#697586] dark:text-[#C0CAD6]">
+        <div className="mt-2 sm:mt-3 flex items-center justify-between text-xs text-[#697586] dark:text-[#C0CAD6]">
           {mode === 'login' && (
             <button
               type="button"
