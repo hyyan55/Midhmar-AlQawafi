@@ -169,8 +169,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
             src="/src/assets/images/hero_manuscript_desk_1795291813917.jpg"
             alt="مخطوطة شعرية عربية وقلم قصب"
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex flex-col justify-end p-6 text-white">
             <p className="font-poetry text-xl sm:text-2xl leading-relaxed">
               «أَنا الَّذي نَظَرَ الأَعمى إِلى أَدَبي · وَأَسمَعَت كَلِماتي مَن بِهِ صَمَمُ»
