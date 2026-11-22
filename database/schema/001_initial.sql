@@ -113,6 +113,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   username VARCHAR(40) NOT NULL UNIQUE,
   display_name VARCHAR(80) NOT NULL,
   avatar_id VARCHAR(40) NOT NULL DEFAULT 'scholar_astrolabe',
+  avatar_url TEXT,
   bio VARCHAR(240) NOT NULL DEFAULT '',
   timezone VARCHAR(64) NOT NULL DEFAULT 'UTC',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
