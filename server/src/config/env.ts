@@ -46,4 +46,9 @@ export const env = {
   pgPassword: process.env.PGPASSWORD || '',
   pgSsl: process.env.PGSSL === 'true',
   sqlitePath: process.env.SQLITE_DB_PATH || './data/qafiyah_platform.sqlite',
+  smtpHost: process.env.SMTP_HOST || 'smtp.gmail.com',
+  smtpPort: Number(process.env.SMTP_PORT || 465),
+  smtpUser: process.env.SMTP_USER || '',
+  smtpPass: process.env.SMTP_PASS || '',
+  emailFrom: process.env.EMAIL_FROM || process.env.SMTP_USER || '',
 };
