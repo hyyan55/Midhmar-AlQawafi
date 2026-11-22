@@ -133,7 +133,7 @@ export const GameplayScreen: React.FC = () => {
         </div>
 
         {/* Multiple-Choice Options */}
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-1 gap-2">
           {currentQ.options.map((opt, idx) => {
             const isSelected = activeGame.selectedOptionId === opt.id;
             const isCorrectOption = feedback?.correctOptionId === opt.id;
@@ -160,7 +160,7 @@ export const GameplayScreen: React.FC = () => {
                 type="button"
                 disabled={Boolean(feedback) || submitting}
                 onClick={() => handleSelectOption(opt.id)}
-                className={`w-full text-right px-4 py-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 min-h-[48px] ${styleClass}`}
+                className={`w-full text-right px-3 py-2 rounded-xl border transition-all flex items-center justify-between gap-2 min-h-[44px] ${styleClass}`}
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <span className="w-7 h-7 rounded-lg bg-[#EAE2D2] dark:bg-[#14243B] flex items-center justify-center text-xs font-mono-tabular font-semibold shrink-0">
@@ -169,7 +169,7 @@ export const GameplayScreen: React.FC = () => {
                   <div className="min-w-0">
                     <div
                       className={`font-semibold ${
-                        activeGame.mode === 'complete_verse' ? 'font-poetry text-lg' : 'text-sm sm:text-base'
+                        activeGame.mode === 'complete_verse' ? 'font-poetry text-sm sm:text-base' : 'text-xs sm:text-sm'
                       }`}
                     >
                       {opt.label}
