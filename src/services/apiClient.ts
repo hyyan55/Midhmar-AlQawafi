@@ -229,11 +229,10 @@ export const apiClient = {
           }
         : undefined,
     };
-    const res = await request<{ accessToken: string; user: AuthSessionUser }>('/api/auth/register', {
+    const res = await request<{ message: string }>('/api/auth/register', {
       method: 'POST',
       body: JSON.stringify(body),
     });
-    inMemoryAccessToken = res.data.accessToken;
     return res.data;
   },
 
@@ -251,8 +250,13 @@ export const apiClient = {
     inMemoryAccessToken = null;
   },
 
+  async resendVerification(email: string) {
+    const res = await request<{ message: string }>('/api/auth/resend-verification', { method: 'POST', body: JSON.stringify({ email }) });
+    return res.data;
+  },
+
   async forgotPassword(email: string) {
-    const res = await request<{ message: string; previewResetToken?: string }>(
+    const res = await request<{ message: string }>(
       '/api/auth/forgot-password',
       {
         method: 'POST',
