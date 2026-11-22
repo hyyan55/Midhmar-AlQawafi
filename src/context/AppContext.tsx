@@ -401,7 +401,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         offlinePack.questionPacks.find((p) => p.mode === (mode === 'daily_challenge' ? 'who_said' : mode)) ||
         offlinePack.questionPacks[0];
 
-      const shuffled = [...targetPack.questions].sort(() => Math.random() - 0.5).slice(0, 5);
+      const shuffledPool = [...targetPack.questions].sort(() => Math.random() - 0.5);
+      const shuffled: typeof targetPack.questions = [];
+      const usedPoets = new Set<string>();
+      const usedPoems = new Set<number>();
+
+      // Prefer distinct poets and poems in each offline round.
+      for (const question of shuffledPool) {
+        if (shuffled.length >= 5) break;
+        const poetKey = question.poetNameAr.trim().replace(/\\s+/g, ' ');
+        if (usedPoets.has(poetKey) || usedPoems.has(question.poemId)) continue;
+        shuffled.push(question);
+        usedPoets.add(poetKey);
+        usedPoems.add(question.poemId);
+      }
+
+      // Keep the round playable when the downloaded pack has too few unique poets.
+      if (shuffled.length < 5) {
+        for (const question of shuffledPool) {
+          if (shuffled.length >= 5) break;
+          if (usedPoems.has(question.poemId)) continue;
+          shuffled.push(question);
+          usedPoems.add(question.poemId);
+        }
+      }
       const answerMap: ActiveGameSessionState['offlineAnswersMap'] = {};
       const stripped: ChallengeQuestion[] = shuffled.map((q, idx) => {
         answerMap[q.id] = {
