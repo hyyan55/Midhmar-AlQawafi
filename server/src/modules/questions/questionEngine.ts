@@ -123,6 +123,20 @@ export async function generateQuestionsForMode(
     verseQueryParams
   );
 
+  // The poets table can also be large in imported corpora. Keep the
+  // distractor pool bounded instead of loading every poet into Node memory.
+  const poetCountRow = await db.queryOne<{ total: number | string }>(
+    `SELECT COUNT(*) AS total
+     FROM poets po
+     JOIN eras e ON po.era_id = e.id`
+  );
+  const totalPoets = Number(poetCountRow?.total ?? 0);
+  const poetSampleLimit = Math.min(totalPoets, 500);
+  const maxPoetOffset = Math.max(0, totalPoets - poetSampleLimit);
+  const poetSampleOffset = maxPoetOffset > 0
+    ? deterministicHash(`${sampleSeed}:poets`) % (maxPoetOffset + 1)
+    : 0;
+
   const allPoets = await db.query<{
     id: number;
     name_ar: string;
@@ -131,14 +145,17 @@ export async function generateQuestionsForMode(
   }>(
     `SELECT po.id, po.name_ar, po.era_id, e.name_ar AS era_name_ar
      FROM poets po
-     JOIN eras e ON po.era_id = e.id`
+     JOIN eras e ON po.era_id = e.id
+     ORDER BY po.id ASC
+     LIMIT $1 OFFSET $2`,
+    [poetSampleLimit, poetSampleOffset]
   );
 
   const allEras = await db.query<{
     id: number;
     name_ar: string;
     period_label: string;
-  }>('SELECT id, name_ar, period_label FROM eras ORDER BY sort_order ASC');
+  }>('SELECT id, name_ar, period_label FROM eras ORDER BY sort_order ASC LIMIT 100');
 
   let pool = params.eraId
     ? allVerses.filter((v) => Number(v.era_id) === params.eraId)
