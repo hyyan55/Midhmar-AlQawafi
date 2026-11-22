@@ -581,10 +581,41 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     const today = getLocalCalendarDate();
 
     if (!activeGame.isOfflineMode) {
-      const result = await apiClient.completeSession(activeGame.sessionId, {
-        durationSeconds,
-        timezone: getUserTimezone(),
-      });
+      let result: SessionResult;
+      try {
+        result = await apiClient.completeSession(activeGame.sessionId, {
+          durationSeconds,
+          timezone: getUserTimezone(),
+        });
+      } catch {
+        // Keep the results screen available even if the completion API is unreachable.
+        const correctCount = activeGame.reviews.filter((review) => review.isCorrect).length;
+        const xpEarned = activeGame.reviews.reduce((sum, review) => sum + review.pointsAwarded, 0);
+        const previousXp = user ? user.stats.totalXp : guest.stats.totalXp;
+        const localResult: SessionResult = {
+          sessionId: activeGame.sessionId,
+          mode: activeGame.mode,
+          correctCount,
+          incorrectCount: activeGame.questions.length - correctCount,
+          totalQuestions: activeGame.questions.length,
+          accuracy: Math.round((correctCount / Math.max(1, activeGame.questions.length)) * 100),
+          durationSeconds,
+          xpEarned,
+          streakBonusXp: 0,
+          speedBonusXp: 0,
+          newTotalXp: previousXp + xpEarned,
+          previousLevel: calculateLevelFromXp(previousXp),
+          newLevel: calculateLevelFromXp(previousXp + xpEarned),
+          currentStreak: user ? user.stats.currentStreak : guest.stats.currentStreak + 1,
+          newlyUnlockedAchievements: [],
+          reviews: activeGame.reviews,
+        };
+        setLastResult(localResult);
+        setActiveGame(null);
+        setScreen('results');
+        showNotice('info', 'تعذر حفظ الجولة على الخادم؛ عُرضت نتيجتك محلياً.');
+        return;
+      }
 
       if (user) {
         setUser((prev) =>
@@ -703,7 +734,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setLastResult(offlineResult);
     setActiveGame(null);
     setScreen('results');
-  }, [activeGame, guest.stats.currentStreak, guest.stats.totalXp, settings.soundEnabled, user]);
+  }, [activeGame, guest.stats.currentStreak, guest.stats.totalXp, settings.soundEnabled, showNotice, user]);
 
   const abandonChallenge = useCallback(() => {
     setActiveGame(null);
