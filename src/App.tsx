@@ -23,6 +23,13 @@ const AppRouter: React.FC = () => {
   );
 
   useEffect(() => {
+    window.requestAnimationFrame(() => {
+      window.scrollTo(0, 0);
+      document.querySelector('main')?.scrollTo(0, 0);
+    });
+  }, [screen]);
+
+  useEffect(() => {
     if (user) {
       window.sessionStorage.removeItem('midhmar:guest-entry');
       setGuestEntered(false);
