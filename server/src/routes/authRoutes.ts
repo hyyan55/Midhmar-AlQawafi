@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import bcrypt from 'bcryptjs';
 import { Router, type Request, type Response } from 'express';
+import type { DecodedIdToken } from 'firebase-admin/auth';
 import {
   changePasswordSchema,
   forgotPasswordSchema,
@@ -149,7 +150,7 @@ router.post(
   '/firebase/register',
   authRateLimiter,
   asyncHandler(async (req, res) => {
-    let decoded;
+    let decoded: DecodedIdToken;
     try {
       decoded = await verifyFirebaseIdToken(String(req.body?.idToken || ''));
     } catch {
@@ -272,7 +273,7 @@ router.post(
   '/firebase/session',
   authRateLimiter,
   asyncHandler(async (req, res) => {
-    let decoded;
+    let decoded: DecodedIdToken;
     try {
       decoded = await verifyFirebaseIdToken(String(req.body?.idToken || ''));
     } catch {
