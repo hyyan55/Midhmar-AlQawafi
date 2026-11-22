@@ -264,8 +264,12 @@ router.get('/verify-email', asyncHandler(async (req, res) => {
     throw new AppError(400, 'INVALID_VERIFICATION_TOKEN', 'رابط التأكيد غير صالح أو منتهي الصلاحية');
   }
   await db.transaction(async (tx) => {
+    const consumed = await tx.execute(
+      'UPDATE email_verification_tokens SET used_at = $1 WHERE id = $2 AND used_at IS NULL AND expires_at > $1',
+      [new Date().toISOString(), row.id]
+    );
+    if (consumed.rowCount !== 1) throw new AppError(400, 'INVALID_VERIFICATION_TOKEN', 'رابط التأكيد غير صالح أو مستخدم مسبقاً');
     await tx.execute('UPDATE users SET is_active = $1, updated_at = $2 WHERE id = $3', [true, new Date().toISOString(), row.user_id]);
-    await tx.execute('UPDATE email_verification_tokens SET used_at = $1 WHERE id = $2 AND used_at IS NULL', [new Date().toISOString(), row.id]);
   });
   res.redirect(303, env.appUrl.replace(/\/$/, '') + '/?emailVerified=1');
 }));
@@ -469,10 +473,13 @@ router.post(
         nowIso,
         resetRow.user_id,
       ]);
-      await tx.execute('UPDATE password_reset_tokens SET used_at = $1 WHERE id = $2', [
-        nowIso,
-        resetRow.id,
-      ]);
+      const consumed = await tx.execute(
+        'UPDATE password_reset_tokens SET used_at = $1 WHERE id = $2 AND used_at IS NULL AND expires_at > $1',
+        [nowIso, resetRow.id]
+      );
+      if (consumed.rowCount !== 1) {
+        throw new AppError(400, 'INVALID_RESET_TOKEN', 'رابط الاستعادة غير صالح أو مستخدم مسبقاً');
+      }
       await tx.execute('UPDATE refresh_tokens SET revoked_at = $1 WHERE user_id = $2', [
         nowIso,
         resetRow.user_id,
