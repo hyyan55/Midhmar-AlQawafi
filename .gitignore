@@ -17,6 +17,7 @@ data/
 *.dump
 qafiyah_dump.sql
 database/raw/
+database/cleaned/
 
 # Capacitor & Android build artifacts
 android/

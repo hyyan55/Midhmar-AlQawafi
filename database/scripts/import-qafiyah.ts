@@ -277,6 +277,9 @@ export async function runQafiyahImportPipeline(dumpPath: string, cleanedDir: str
       database: process.env.PGDATABASE || undefined,
       user: process.env.PGUSER || undefined,
       password: process.env.PGPASSWORD || undefined,
+      ssl: process.env.PGSSL === 'true' ? { rejectUnauthorized: false } : false,
+      max: 2,
+      connectionTimeoutMillis: 15000,
     });
 
     try {
