@@ -29,7 +29,7 @@ import {
   updatePassword,
 } from './firebase.ts';
 
-const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) || '';
+const API_BASE = ((import.meta.env.VITE_API_BASE_URL as string | undefined) || 'https://midhmar-alqawafi.onrender.com').replace(/\/$/, '');
 
 // Access token lives strictly in memory (never localStorage or sessionStorage)
 let inMemoryAccessToken: string | null = null;
