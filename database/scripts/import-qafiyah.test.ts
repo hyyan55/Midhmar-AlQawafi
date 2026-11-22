@@ -4,6 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import {
   hasArabicLetters,
+  isRetryablePostgresError,
   normalizeArabicText,
   readNdjsonBatches,
   splitQafiyahPoemVerses,
@@ -61,5 +62,22 @@ describe('NDJSON batch reader', () => {
   it('rejects a non-positive batch size', async () => {
     const batches = readNdjsonBatches('unused.ndjson', 0);
     await expect(batches.next()).rejects.toThrow('batchSize must be a positive integer');
+  });
+});
+
+describe('PostgreSQL retry classification', () => {
+  it('retries transient socket and server disconnect errors', () => {
+    expect(isRetryablePostgresError({ code: 'ECONNABORTED' })).toBe(true);
+    expect(isRetryablePostgresError({ code: 'ECONNRESET' })).toBe(true);
+    expect(isRetryablePostgresError({ code: '57P01' })).toBe(true);
+  });
+
+  it('does not retry permanent SQL errors', () => {
+    expect(isRetryablePostgresError({ code: '23505', message: 'unique violation' })).toBe(false);
+    expect(isRetryablePostgresError({ code: '42601', message: 'syntax error' })).toBe(false);
+  });
+
+  it('checks nested causes for transient connection errors', () => {
+    expect(isRetryablePostgresError({ cause: { code: 'ETIMEDOUT' } })).toBe(true);
   });
 });
