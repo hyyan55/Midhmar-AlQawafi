@@ -21,6 +21,11 @@ import type { Server } from 'node:http';
 // This prevents inherited PGHOST / DATABASE_URL values from sending tests to Aiven.
 const testDbState = vi.hoisted(() => ({ path: '' }));
 
+// Keep API tests independent from external SMTP availability.
+vi.mock('../server/src/services/email.ts', () => ({
+  sendEmail: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('../server/src/db/database.ts', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../server/src/db/database.ts')>();
   return {
