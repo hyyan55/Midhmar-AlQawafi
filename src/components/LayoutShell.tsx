@@ -101,7 +101,7 @@ export const LayoutShell: React.FC<LayoutShellProps> = ({ children, onOpenAuthMo
                   className="flex items-center gap-2.5 px-3 py-1.5 rounded-xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] hover:border-[#0D6E52] dark:hover:border-[#18A87E] transition-colors min-h-[44px] whitespace-nowrap shrink-0"
                 >
                   <img
-                    src={getOptimizedImageUrl(getAvatarImageUrl(activeAvatarId), 96)}
+                    src={getOptimizedImageUrl(user?.profile.avatarUrl || getAvatarImageUrl(activeAvatarId), 96)}
                     alt={activeDisplayName}
                     referrerPolicy="no-referrer"
                     className="w-7 h-7 rounded-lg object-cover shrink-0" loading="eager" decoding="async" />
