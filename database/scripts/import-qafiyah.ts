@@ -482,6 +482,7 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
       sourceId: number;
       titleAr: string;
       poetSourceId: number;
+      eraSourceId: number | null;
       meterSourceId: number | null;
       themeSourceId: number | null;
       rhymeSourceId: number | null;
@@ -493,25 +494,27 @@ async function upsertCleanedNdjsonToPostgres(pool: Pool, cleanedDir: string): Pr
           poem.sourceId,
           poem.titleAr,
           poem.poetSourceId,
+          poem.eraSourceId ?? null,
           poem.meterSourceId ?? null,
           poem.themeSourceId ?? null,
           poem.rhymeSourceId ?? null,
           poem.typeSourceId ?? null,
           poem.verses.length,
         ]), [
-          'integer', 'text', 'integer', 'integer',
+          'integer', 'text', 'integer', 'integer', 'integer',
           'integer', 'integer', 'integer', 'integer',
         ]);
 
         const inserted = await client.query<{ source_id: number; id: number }>(
           [
             'INSERT INTO poems (source_id, title_ar, poet_id, era_id, meter_id, theme_id, rhyme_id, poem_type_id, verse_count)',
-            'SELECT v.source_id, v.title_ar, p.id, p.era_id, m.id, th.id, r.id, pt.id, v.verse_count',
+            'SELECT v.source_id, v.title_ar, p.id, COALESCE(e.id, p.era_id), m.id, th.id, r.id, pt.id, v.verse_count',
             'FROM (VALUES ' + poemValues.clause + ') AS v(',
-            '  source_id, title_ar, poet_source_id, meter_source_id,',
+            '  source_id, title_ar, poet_source_id, era_source_id, meter_source_id,',
             '  theme_source_id, rhyme_source_id, type_source_id, verse_count',
             ')',
             'JOIN poets p ON p.source_id = v.poet_source_id',
+            'LEFT JOIN eras e ON e.source_id = v.era_source_id',
             'LEFT JOIN meters m ON m.source_id = v.meter_source_id',
             'LEFT JOIN themes th ON th.source_id = v.theme_source_id',
             'LEFT JOIN rhymes r ON r.source_id = v.rhyme_source_id',
