@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { X } from 'lucide-react';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
+import { firebaseAuth, sendPasswordResetEmail } from '../services/firebase.ts';
 
 interface AuthModalProps {
   open: boolean;
@@ -60,8 +61,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         setInfoMessage('تم إنشاء الحساب. افتح رسالة التأكيد المرسلة إلى بريدك لتفعيل الحساب، ثم سجّل الدخول.');
         setMode('login');
       } else if (mode === 'forgot') {
-        const res = await apiClient.forgotPassword(email);
-        setInfoMessage(res.message);
+        await sendPasswordResetEmail(firebaseAuth, email.trim());
+        setInfoMessage('إذا كان البريد مسجلاً، فستصلك رسالة من Firebase لإعادة تعيين كلمة المرور.');
         setMode('login');
       } else if (mode === 'reset') {
         const res = await apiClient.resetPassword(resetToken, newPassword);
@@ -282,49 +283,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               نسيت كلمة المرور؟
             </button>
           )}
-          {mode === 'login' && (
-            <button
-              type="button"
-              disabled={submitting || !email.trim() || !backendAvailable}
-              onClick={async () => {
-                setSubmitting(true);
-                setErrorMessage(null);
-                setInfoMessage(null);
-                try {
-                  const res = await apiClient.resendVerification(email.trim());
-                  setInfoMessage(res.message);
-                } catch (err) {
-                  setErrorMessage(err instanceof Error ? err.message : 'تعذر إرسال رابط التأكيد');
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="hover:underline py-2 disabled:opacity-50"
-            >
-              إعادة إرسال تأكيد البريد
-            </button>
-          )}
-          {mode === 'forgot' && (
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={async () => {
-                setSubmitting(true);
-                setErrorMessage(null);
-                try {
-                  const res = await apiClient.resendVerification(email);
-                  setInfoMessage(res.message);
-                } catch (err) {
-                  setErrorMessage(err instanceof Error ? err.message : 'تعذر إرسال رابط التأكيد');
-                } finally {
-                  setSubmitting(false);
-                }
-              }}
-              className="hover:underline py-2"
-            >
-              إعادة إرسال تأكيد البريد
-            </button>
-          )}
+
+
           {(mode === 'forgot' || mode === 'reset') && (
             <button
               type="button"
