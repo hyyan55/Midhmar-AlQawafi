@@ -343,7 +343,7 @@ export async function* readNdjsonBatches<T>(
 }
 
 
-function isRetryablePostgresError(error: unknown): boolean {
+export function isRetryablePostgresError(error: unknown): boolean {
   const candidate = error as { code?: string; message?: string; cause?: unknown };
   const code = candidate?.code || '';
   const message = candidate?.message || '';
