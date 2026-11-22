@@ -409,7 +409,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // Prefer distinct poets and poems in each offline round.
       for (const question of shuffledPool) {
         if (shuffled.length >= 5) break;
-        const poetKey = question.poetNameAr.trim().replace(/\\s+/g, ' ');
+        const poetKey = question.poetNameAr.trim().replace(/\s+/g, ' ');
         if (usedPoets.has(poetKey) || usedPoems.has(question.poemId)) continue;
         shuffled.push(question);
         usedPoets.add(poetKey);
