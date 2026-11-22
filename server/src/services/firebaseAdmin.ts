@@ -34,3 +34,8 @@ export async function verifyFirebaseIdToken(idToken: string) {
   }
   return getFirebaseAdminAuth().verifyIdToken(idToken, true);
 }
+
+export async function deleteFirebaseUser(uid: string): Promise<void> {
+  if (!uid) return;
+  await getFirebaseAdminAuth().deleteUser(uid);
+}
