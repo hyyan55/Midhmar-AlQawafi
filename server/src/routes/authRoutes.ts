@@ -239,7 +239,11 @@ router.post(
       if (Array.isArray(migration?.history)) {
         for (const item of migration.history) {
           if (!item?.sessionId || !item?.completedAt) continue;
-          const operationId = `guest_${String(migration.guestId || 'guest')}_${String(item.sessionId)}`;
+          const operationHash = crypto.createHash('sha256')
+            .update(`${String(migration.guestId || 'guest')}_${String(item.sessionId)}`)
+            .digest('hex')
+            .slice(0, 32);
+          const operationId = `${operationHash.slice(0, 8)}-${operationHash.slice(8, 12)}-${operationHash.slice(12, 16)}-${operationHash.slice(16, 20)}-${operationHash.slice(20, 32)}`;
           await tx.execute(
             `INSERT INTO game_sessions (
               id, user_id, mode, status, total_questions, correct_count,
