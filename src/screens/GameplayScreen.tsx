@@ -9,6 +9,7 @@ export const GameplayScreen: React.FC = () => {
     submitCurrentAnswer,
     advanceNextQuestion,
     abandonChallenge,
+    showNotice,
   } = useApp();
 
   const [secondsLeft, setSecondsLeft] = useState(25);
@@ -59,13 +60,16 @@ export const GameplayScreen: React.FC = () => {
     setSubmitting(true);
     try {
       await advanceNextQuestion();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'تعذر إنهاء التحدي. حاول مرة أخرى.';
+      showNotice('error', message);
     } finally {
       setSubmitting(false);
     }
   }
 
   return (
-    <div className="min-h-dvh flex flex-col max-w-3xl mx-auto px-4 sm:px-6 py-5 sm:py-8">
+    <div className="min-h-[100dvh] flex flex-col max-w-3xl mx-auto px-3 sm:px-6 py-3 sm:py-5">
       {/* Top Arena HUD */}
       <div className="flex items-center justify-between gap-4 pb-4">
         <button
@@ -105,15 +109,15 @@ export const GameplayScreen: React.FC = () => {
       </div>
 
       {/* Question Card */}
-      <div className="flex-1 flex flex-col justify-center space-y-6 py-4">
-        <div className="rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-6 sm:p-8 space-y-6">
+      <div className="flex-1 flex flex-col justify-start space-y-3 py-2">
+        <div className="rounded-2xl bg-white dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-4 sm:p-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-[#697586] dark:text-[#C0CAD6]">
             <span>{currentQ.promptAr}</span>
             {currentQ.meterNameAr && <span>{currentQ.meterNameAr}</span>}
           </div>
 
-          <div className="py-4 px-2 text-center space-y-3">
-            <p className="font-poetry text-2xl sm:text-3xl leading-loose font-bold text-[#17233A] dark:text-[#F5F1E8]">
+          <div className="py-1 px-1 text-center space-y-1">
+            <p className="font-poetry text-xl sm:text-2xl leading-relaxed font-bold text-[#17233A] dark:text-[#F5F1E8]">
               {currentQ.verseSadr}
             </p>
             {currentQ.verseAjuz ? (
@@ -129,7 +133,7 @@ export const GameplayScreen: React.FC = () => {
         </div>
 
         {/* Multiple-Choice Options */}
-        <div className="grid grid-cols-1 gap-3">
+        <div className="grid grid-cols-1 gap-2">
           {currentQ.options.map((opt, idx) => {
             const isSelected = activeGame.selectedOptionId === opt.id;
             const isCorrectOption = feedback?.correctOptionId === opt.id;
@@ -156,7 +160,7 @@ export const GameplayScreen: React.FC = () => {
                 type="button"
                 disabled={Boolean(feedback) || submitting}
                 onClick={() => handleSelectOption(opt.id)}
-                className={`w-full text-right px-5 py-4 rounded-2xl border transition-all flex items-center justify-between gap-4 min-h-[56px] ${styleClass}`}
+                className={`w-full text-right px-4 py-2.5 rounded-xl border transition-all flex items-center justify-between gap-3 min-h-[48px] ${styleClass}`}
               >
                 <div className="flex items-center gap-3.5 min-w-0">
                   <span className="w-7 h-7 rounded-lg bg-[#EAE2D2] dark:bg-[#14243B] flex items-center justify-center text-xs font-mono-tabular font-semibold shrink-0">
@@ -191,7 +195,7 @@ export const GameplayScreen: React.FC = () => {
 
         {/* Immediate Feedback & Next Button */}
         {feedback && (
-          <div className="rounded-2xl bg-[#EAE2D2] dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-5 space-y-4">
+          <div className="rounded-2xl bg-[#EAE2D2] dark:bg-[#1B2D47] border border-[#E2D8C5] dark:border-[#35465E] p-4 space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2 font-semibold text-sm">
                 {feedback.isCorrect ? (
