@@ -337,10 +337,17 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       // while a free hosting instance was waking up from sleep).
       let canUseBackend = isOnline && backendAvailable;
       if (isOnline && !canUseBackend) {
-        const health = await apiClient.checkBackendHealth();
-        canUseBackend = health.available;
-        setBackendAvailable(health.available);
-        setBackendChecked(true);
+        try {
+          const health = await apiClient.checkBackendHealth();
+          canUseBackend = health.available;
+          setBackendAvailable(health.available);
+          setBackendChecked(true);
+        } catch {
+          // A failed health check must not abort the challenge flow.
+          canUseBackend = false;
+          setBackendAvailable(false);
+          setBackendChecked(true);
+        }
       }
 
       let backendError: string | null = null;
