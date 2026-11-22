@@ -57,18 +57,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           password,
           migrateGuestProgress: migrateGuest,
         });
-        onClose();
+        setInfoMessage('تم إنشاء الحساب. افتح رسالة التأكيد المرسلة إلى بريدك لتفعيل الحساب، ثم سجّل الدخول.');
+        setMode('login');
       } else if (mode === 'forgot') {
         const res = await apiClient.forgotPassword(email);
-        setInfoMessage(
-          res.previewResetToken
-            ? `${res.message} (رمز الاستعادة للمعاينة: ${res.previewResetToken})`
-            : res.message
-        );
-        if (res.previewResetToken) {
-          setResetToken(res.previewResetToken);
-        }
-        setMode('reset');
+        setInfoMessage(res.message);
+        setMode('login');
       } else if (mode === 'reset') {
         const res = await apiClient.resetPassword(resetToken, newPassword);
         setInfoMessage(res.message);
@@ -286,6 +280,27 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               className="hover:underline py-2"
             >
               نسيت كلمة المرور؟
+            </button>
+          )}
+          {mode === 'forgot' && (
+            <button
+              type="button"
+              disabled={submitting}
+              onClick={async () => {
+                setSubmitting(true);
+                setErrorMessage(null);
+                try {
+                  const res = await apiClient.resendVerification(email);
+                  setInfoMessage(res.message);
+                } catch (err) {
+                  setErrorMessage(err instanceof Error ? err.message : 'تعذر إرسال رابط التأكيد');
+                } finally {
+                  setSubmitting(false);
+                }
+              }}
+              className="hover:underline py-2"
+            >
+              إعادة إرسال تأكيد البريد
             </button>
           )}
           {(mode === 'forgot' || mode === 'reset') && (
