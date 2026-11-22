@@ -12,34 +12,34 @@ export const WelcomeScreen: React.FC<WelcomeScreenProps> = ({ onLogin, onRegiste
   const { appName } = useApp();
 
   return (
-    <main className="min-h-dvh flex items-center justify-center px-4 py-10 bg-[#F8F6F1] dark:bg-[#0F1419] text-[#181A1B] dark:text-[#F3EFE6]">
+    <main className="min-h-dvh flex items-center justify-center px-4 py-10 bg-[#F7F3E8] dark:bg-[#102448] text-[#17233A] dark:text-[#F7F3E8]">
       <section className="w-full max-w-md">
         <div className="text-center mb-8">
-          <div className="mx-auto mb-5 w-16 h-16 rounded-2xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] flex items-center justify-center shadow-lg shadow-emerald-900/10">
+          <div className="mx-auto mb-5 w-16 h-16 rounded-2xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] flex items-center justify-center shadow-lg shadow-emerald-900/10">
             <BookOpen className="w-8 h-8" strokeWidth={1.8} />
           </div>
-          <p className="text-sm font-semibold tracking-wide text-[#0D6E52] dark:text-[#18A87E] mb-2">مرحباً بك في</p>
+          <p className="text-sm font-semibold tracking-wide text-[#14284B] dark:text-[#E0B84F] mb-2">مرحباً بك في</p>
           <h1 className="text-4xl font-bold font-poetry">{appName}</h1>
-          <p className="mt-4 text-sm leading-7 text-[#5E615E] dark:text-[#A0A8B0]">
+          <p className="mt-4 text-sm leading-7 text-[#626777] dark:text-[#C5CDDB]">
             مساحة لاختبار ذاكرتك الشعرية، واكتشاف روائع القصائد وأعلام الشعر العربي.
           </p>
         </div>
 
-        <div className="rounded-3xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5 sm:p-6 shadow-xl shadow-black/[0.04] space-y-3">
-          <button type="button" onClick={onLogin} className="w-full min-h-12 rounded-xl bg-[#0D6E52] hover:bg-[#0A5740] dark:bg-[#18A87E] dark:hover:bg-[#14906B] text-white dark:text-[#0F1419] font-semibold flex items-center justify-center gap-2 transition-colors">
+        <div className="rounded-3xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5 sm:p-6 shadow-xl shadow-black/[0.04] space-y-3">
+          <button type="button" onClick={onLogin} className="w-full min-h-12 rounded-xl bg-[#14284B] hover:bg-[#0D1D39] dark:bg-[#E0B84F] dark:hover:bg-[#C69B2F] text-white dark:text-[#102448] font-semibold flex items-center justify-center gap-2 transition-colors">
             <LogIn className="w-4 h-4" />
             تسجيل الدخول
           </button>
-          <button type="button" onClick={onRegister} className="w-full min-h-12 rounded-xl border border-[#0D6E52] dark:border-[#18A87E] text-[#0D6E52] dark:text-[#18A87E] font-semibold flex items-center justify-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors">
+          <button type="button" onClick={onRegister} className="w-full min-h-12 rounded-xl border border-[#14284B] dark:border-[#E0B84F] text-[#14284B] dark:text-[#E0B84F] font-semibold flex items-center justify-center gap-2 hover:bg-emerald-50 dark:hover:bg-emerald-950/20 transition-colors">
             <UserPlus className="w-4 h-4" />
             إنشاء حساب جديد
           </button>
           <div className="flex items-center gap-3 py-1 text-xs text-[#8A8B85] dark:text-[#7D8994]">
-            <span className="h-px flex-1 bg-[#DFD9CE] dark:bg-[#2A3542]" />
+            <span className="h-px flex-1 bg-[#E8DEC8] dark:bg-[#2B4164]" />
             أو
-            <span className="h-px flex-1 bg-[#DFD9CE] dark:bg-[#2A3542]" />
+            <span className="h-px flex-1 bg-[#E8DEC8] dark:bg-[#2B4164]" />
           </div>
-          <button type="button" onClick={onGuest} className="w-full min-h-12 rounded-xl bg-[#EFECE4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-[#181A1B] dark:text-[#F3EFE6] font-semibold flex items-center justify-center gap-2 transition-colors">
+          <button type="button" onClick={onGuest} className="w-full min-h-12 rounded-xl bg-[#EEE6D4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-[#17233A] dark:text-[#F7F3E8] font-semibold flex items-center justify-center gap-2 transition-colors">
             <UserRound className="w-4 h-4" />
             المتابعة كضيف
           </button>
