@@ -189,7 +189,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <label className="block text-xs sm:text-sm font-medium mb-1">البريد الإلكتروني</label>
               <input
                 type="email"
-                list="midhmar-email-domains"
                 autoComplete="email"
                 required
                 dir="ltr"
