@@ -171,13 +171,16 @@ router.post(
       if (existing.firebase_uid && existing.firebase_uid !== decoded.uid) {
         throw new AppError(409, 'FIREBASE_ACCOUNT_MISMATCH', 'هذا البريد مرتبط بحساب آخر');
       }
-      await db.execute(
-        'UPDATE users SET firebase_uid = $1, updated_at = $2 WHERE id = $3',
-        [decoded.uid, new Date().toISOString(), existing.id]
-      );
+      // Do not claim a legacy email until Firebase confirms ownership of that inbox.
+      if (decoded.email_verified) {
+        await db.execute(
+          'UPDATE users SET firebase_uid = $1, is_active = $2, updated_at = $3 WHERE id = $4',
+          [decoded.uid, true, new Date().toISOString(), existing.id]
+        );
+      }
       res.json({
         success: true,
-        data: { message: 'تم ربط حسابك السابق. أكّد بريدك الإلكتروني ثم سجّل الدخول.' },
+        data: { message: 'تم العثور على حسابك السابق. أكّد بريدك الإلكتروني ثم سجّل الدخول لربط الحساب.' },
       });
       return;
     }
@@ -278,13 +281,22 @@ router.post(
     }
 
     const db = getDb();
-    const user = await db.queryOne<{ id: string; firebase_uid: string | null; username: string }>(
+    let user = await db.queryOne<{ id: string; firebase_uid: string | null; username: string }>(
       `SELECT u.id, u.firebase_uid, up.username
        FROM users u JOIN user_profiles up ON up.user_id = u.id
-       WHERE u.firebase_uid = $1 OR (LOWER(u.email) = LOWER($2) AND u.firebase_uid IS NULL)
+       WHERE u.firebase_uid = $1
        LIMIT 1`,
-      [decoded.uid, email]
+      [decoded.uid]
     );
+    if (!user) {
+      user = await db.queryOne<{ id: string; firebase_uid: string | null; username: string }>(
+        `SELECT u.id, u.firebase_uid, up.username
+         FROM users u JOIN user_profiles up ON up.user_id = u.id
+         WHERE LOWER(u.email) = LOWER($1) AND u.firebase_uid IS NULL
+         LIMIT 1`,
+        [email]
+      );
+    }
     if (!user) {
       throw new AppError(404, 'ACCOUNT_NOT_FOUND', 'لم نعثر على حسابك في قاعدة البيانات. تواصل مع الدعم إذا كان لديك حساب سابق.');
     }
