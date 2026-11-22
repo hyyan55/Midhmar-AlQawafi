@@ -47,7 +47,7 @@ export function normalizeLastPlayedDate(value: string | Date | null): string | n
   }
 
   const normalized = value.trim().slice(0, 10);
-  return /^\\d{4}-\\d{2}-\\d{2}$/.test(normalized) ? normalized : null;
+  return /^\d{4}-\d{2}-\d{2}$/.test(normalized) ? normalized : null;
 }
 
 export function computeNextStreak(
