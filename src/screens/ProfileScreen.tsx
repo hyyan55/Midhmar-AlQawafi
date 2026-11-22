@@ -11,7 +11,7 @@ import {
 } from '../../packages/shared/src/index.ts';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
-import { uploadProfilePhoto } from '../services/firebase.ts';
+import { uploadProfilePhoto } from '../services/profilePhoto.ts';
 import { offlineDb } from '../storage/offlineDb.ts';
 import { formatDurationAr, getAvatarImageUrl } from '../utils/feedback.ts';
 
