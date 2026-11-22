@@ -147,8 +147,7 @@ export const LeaderboardsScreen: React.FC = () => {
                     src={getOptimizedImageUrl(entry.avatarUrl || getAvatarImageUrl(entry.avatarId), 128)}
                     alt={entry.displayName}
                     referrerPolicy="no-referrer"
-                    className="w-10 h-10 rounded-xl object-cover shrink-0"
-                  />
+                    className="w-10 h-10 rounded-xl object-cover shrink-0" loading="lazy" decoding="async" />
                   <div className="min-w-0">
                     <div className="font-semibold text-sm truncate">
                       {entry.displayName} {isSelf ? '(أنت)' : ''}
