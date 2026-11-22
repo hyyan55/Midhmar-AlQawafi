@@ -56,6 +56,22 @@ export async function generateQuestionsForMode(
   const meta = GAME_MODES_META[params.mode];
   const targetCount = params.count ?? meta.questionCount;
 
+  // Never load the full poetry corpus into the API process. The production
+  // database may contain close to a million verses, which exceeds the memory
+  // available on the Render free instance. Read a bounded window instead.
+  const verseCountRow = await db.queryOne<{ total: number | string }>(
+    `SELECT COUNT(*) AS total
+     FROM poem_verses pv
+     JOIN poems p ON pv.poem_id = p.id
+     JOIN poets po ON p.poet_id = po.id
+     JOIN eras e ON p.era_id = e.id`
+  );
+  const totalVerses = Number(verseCountRow?.total ?? 0);
+  const sampleLimit = Math.min(totalVerses, 500);
+  const maxOffset = Math.max(0, totalVerses - sampleLimit);
+  const sampleSeed = params.seed ?? crypto.randomUUID();
+  const sampleOffset = maxOffset > 0 ? deterministicHash(sampleSeed) % (maxOffset + 1) : 0;
+
   const allVerses = await db.query<VerseJoinRow>(
     `SELECT
        pv.id AS verse_id,
@@ -75,7 +91,9 @@ export async function generateQuestionsForMode(
      JOIN poets po ON p.poet_id = po.id
      JOIN eras e ON p.era_id = e.id
      LEFT JOIN meters m ON p.meter_id = m.id
-     ORDER BY pv.id ASC`
+     ORDER BY pv.id ASC
+     LIMIT $1 OFFSET $2`,
+    [sampleLimit, sampleOffset]
   );
 
   const allPoets = await db.query<{
