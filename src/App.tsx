@@ -42,10 +42,10 @@ const AppRouter: React.FC = () => {
 
   if (!isAuthReady) {
     return (
-      <div className="min-h-dvh flex items-center justify-center bg-[#F8F6F1] dark:bg-[#0F1419]">
-        <div className="flex flex-col items-center gap-3 text-[#0D6E52] dark:text-[#18A87E]" role="status">
+      <div className="min-h-dvh flex items-center justify-center bg-[#F7F3E8] dark:bg-[#102448]">
+        <div className="flex flex-col items-center gap-3 text-[#14284B] dark:text-[#E0B84F]" role="status">
           <div className="w-9 h-9 rounded-full border-[3px] border-current/20 border-t-current animate-spin" />
-          <span className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">جارٍ تجهيز مِضمار القوافي...</span>
+          <span className="text-sm text-[#626777] dark:text-[#C5CDDB]">جارٍ تجهيز مِضمار القوافي...</span>
         </div>
       </div>
     );
