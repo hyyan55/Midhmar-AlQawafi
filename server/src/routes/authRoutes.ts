@@ -22,6 +22,7 @@ import {
 import { AppError, asyncHandler } from '../middleware/errorHandler.ts';
 import { authRateLimiter } from '../middleware/rateLimit.ts';
 import { sendEmail } from '../services/email.ts';
+import { verifyFirebaseIdToken } from '../services/firebaseAdmin.ts';
 
 const router = Router();
 const REFRESH_COOKIE_NAME = 'qafiyah_refresh';
@@ -143,6 +144,165 @@ export async function loadAuthUserBundle(db: DbClient, userId: string) {
     },
   };
 }
+
+router.post(
+  '/firebase/register',
+  authRateLimiter,
+  asyncHandler(async (req, res) => {
+    let decoded;
+    try {
+      decoded = await verifyFirebaseIdToken(String(req.body?.idToken || ''));
+    } catch {
+      throw new AppError(401, 'INVALID_FIREBASE_TOKEN', 'تعذر التحقق من حساب Firebase');
+    }
+
+    const email = String(decoded.email || '').trim().toLowerCase();
+    if (!email || !decoded.uid) {
+      throw new AppError(400, 'INVALID_FIREBASE_ACCOUNT', 'حساب Firebase لا يحتوي على بريد صالح');
+    }
+
+    const db = getDb();
+    const existing = await db.queryOne<{ id: string; firebase_uid: string | null }>(
+      'SELECT id, firebase_uid FROM users WHERE LOWER(email) = LOWER($1)',
+      [email]
+    );
+
+    if (existing) {
+      if (existing.firebase_uid && existing.firebase_uid !== decoded.uid) {
+        throw new AppError(409, 'FIREBASE_ACCOUNT_MISMATCH', 'هذا البريد مرتبط بحساب آخر');
+      }
+      await db.execute(
+        'UPDATE users SET firebase_uid = $1, updated_at = $2 WHERE id = $3',
+        [decoded.uid, new Date().toISOString(), existing.id]
+      );
+      res.json({
+        success: true,
+        data: { message: 'تم ربط حسابك السابق. أكّد بريدك الإلكتروني ثم سجّل الدخول.' },
+      });
+      return;
+    }
+
+    const displayName = String(req.body?.displayName || '').trim();
+    const username = String(req.body?.username || '').trim();
+    if (!displayName || !username) {
+      throw new AppError(404, 'LEGACY_ACCOUNT_NOT_FOUND', 'لا يوجد حساب سابق بهذا البريد. أنشئ حساباً جديداً من صفحة التسجيل.');
+    }
+    if (username.length < 3 || username.length > 40 || !/^[a-zA-Z0-9_]+$/.test(username)) {
+      throw new AppError(400, 'INVALID_USERNAME', 'اسم المستخدم يجب أن يتكون من 3 إلى 40 حرفاً أو رقماً أو شرطة سفلية');
+    }
+
+    const existingUsername = await db.queryOne<{ user_id: string }>(
+      'SELECT user_id FROM user_profiles WHERE LOWER(username) = LOWER($1)',
+      [username]
+    );
+    if (existingUsername) {
+      throw new AppError(409, 'USERNAME_EXISTS', 'اسم المستخدم مستخدم بالفعل، اختر اسماً آخر');
+    }
+
+    const userId = crypto.randomUUID();
+    const passwordHash = await bcrypt.hash(crypto.randomBytes(32).toString('hex'), 12);
+    const timezone = String(req.body?.timezone || 'UTC');
+    const migration = req.body?.guestMigration;
+    const stats = migration?.stats;
+    const initialXp = stats ? Math.min(50000, Math.max(0, Number(stats.totalXp) || 0)) : 0;
+
+    await db.transaction(async (tx) => {
+      await tx.execute(
+        'INSERT INTO users (id, email, password_hash, firebase_uid, is_active) VALUES ($1, $2, $3, $4, $5)',
+        [userId, email, passwordHash, decoded.uid, Boolean(decoded.email_verified)]
+      );
+      await tx.execute(
+        "INSERT INTO user_profiles (user_id, username, display_name, avatar_id, bio, timezone) VALUES ($1, $2, $3, 'scholar_astrolabe', '', $4)",
+        [userId, username, displayName, timezone]
+      );
+      await tx.execute(
+        `INSERT INTO player_stats (
+          user_id, total_xp, level, current_streak, longest_streak, last_played_date,
+          games_played, total_questions, correct_answers, daily_challenges_completed
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          userId, initialXp, calculateLevelFromXp(initialXp),
+          Number(stats?.currentStreak) || 0, Number(stats?.longestStreak) || 0,
+          stats?.lastPlayedDate || null, Number(stats?.gamesPlayed) || 0,
+          Number(stats?.totalQuestions) || 0, Number(stats?.correctAnswers) || 0,
+          Number(stats?.dailyChallengesCompleted) || 0,
+        ]
+      );
+      await tx.execute(
+        "INSERT INTO player_settings (user_id, theme, sound_enabled, vibration_enabled, show_on_leaderboard, share_activity_publicly) VALUES ($1, 'light', $2, $3, $4, $5)",
+        [userId, true, true, true, true]
+      );
+
+      if (Array.isArray(migration?.history)) {
+        for (const item of migration.history) {
+          if (!item?.sessionId || !item?.completedAt) continue;
+          const operationId = `guest_${String(migration.guestId || 'guest')}_${String(item.sessionId)}`;
+          await tx.execute(
+            `INSERT INTO game_sessions (
+              id, user_id, mode, status, total_questions, correct_count,
+              xp_earned, duration_seconds, question_payload_json, operation_id, started_at, completed_at
+            ) VALUES ($1, $2, $3, 'completed', $4, $5, $6, $7, '[]', $8, $9, $10)
+            ON CONFLICT (operation_id) DO NOTHING`,
+            [
+              crypto.randomUUID(), userId, item.mode || 'classic',
+              Number(item.totalQuestions) || 0, Number(item.correctCount) || 0,
+              Number(item.xpEarned) || 0, Number(item.durationSeconds) || 0,
+              operationId, item.completedAt, item.completedAt,
+            ]
+          );
+        }
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      data: { message: 'تم إنشاء الحساب. أرسلنا رابط تأكيد إلى بريدك الإلكتروني.' },
+    });
+  })
+);
+
+router.post(
+  '/firebase/session',
+  authRateLimiter,
+  asyncHandler(async (req, res) => {
+    let decoded;
+    try {
+      decoded = await verifyFirebaseIdToken(String(req.body?.idToken || ''));
+    } catch {
+      throw new AppError(401, 'INVALID_FIREBASE_TOKEN', 'تعذر التحقق من حساب Firebase');
+    }
+
+    const email = String(decoded.email || '').trim().toLowerCase();
+    if (!decoded.email_verified || !email) {
+      throw new AppError(403, 'EMAIL_NOT_VERIFIED', 'يجب تأكيد بريدك الإلكتروني أولاً');
+    }
+
+    const db = getDb();
+    const user = await db.queryOne<{ id: string; firebase_uid: string | null; username: string }>(
+      `SELECT u.id, u.firebase_uid, up.username
+       FROM users u JOIN user_profiles up ON up.user_id = u.id
+       WHERE u.firebase_uid = $1 OR (LOWER(u.email) = LOWER($2) AND u.firebase_uid IS NULL)
+       LIMIT 1`,
+      [decoded.uid, email]
+    );
+    if (!user) {
+      throw new AppError(404, 'ACCOUNT_NOT_FOUND', 'لم نعثر على حسابك في قاعدة البيانات. تواصل مع الدعم إذا كان لديك حساب سابق.');
+    }
+    if (user.firebase_uid && user.firebase_uid !== decoded.uid) {
+      throw new AppError(409, 'FIREBASE_ACCOUNT_MISMATCH', 'هذا الحساب مرتبط بهوية Firebase مختلفة');
+    }
+
+    await db.execute(
+      'UPDATE users SET firebase_uid = $1, is_active = $2, updated_at = $3 WHERE id = $4',
+      [decoded.uid, true, new Date().toISOString(), user.id]
+    );
+
+    const { accessToken, rawRefreshToken } = await issueSessionTokens(db, user.id, user.username);
+    setRefreshCookie(req, res, rawRefreshToken);
+    const userBundle = await loadAuthUserBundle(db, user.id);
+    res.json({ success: true, data: { accessToken, user: userBundle } });
+  })
+);
 
 router.post(
   '/register',
