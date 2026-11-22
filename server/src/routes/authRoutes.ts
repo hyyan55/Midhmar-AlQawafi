@@ -21,9 +21,14 @@ import {
 } from '../middleware/auth.ts';
 import { AppError, asyncHandler } from '../middleware/errorHandler.ts';
 import { authRateLimiter } from '../middleware/rateLimit.ts';
+import { sendEmail } from '../services/email.ts';
 
 const router = Router();
 const REFRESH_COOKIE_NAME = 'qafiyah_refresh';
+
+function actionEmail(title: string, text: string, url: string, button: string): string {
+  return '<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><body style="font-family:Arial;background:#f4f6f8;padding:24px;color:#172033"><main style="max-width:520px;margin:auto;background:#fff;padding:28px;border-radius:16px;text-align:center"><h2>' + title + '</h2><p style="line-height:1.9">' + text + '</p><p><a style="display:inline-block;background:#0d6e52;color:white;padding:14px 22px;border-radius:9px;text-decoration:none" href="' + url + '">' + button + '</a></p><p style="font-size:12px;word-break:break-all">' + url + '</p><p style="font-size:12px;color:#667085">إذا لم تطلب هذا الإجراء فتجاهل الرسالة.</p></main></body></html>';
+}
 
 function setRefreshCookie(req: Request, res: Response, rawToken: string): void {
   const isHttps = req.secure || req.headers['x-forwarded-proto'] === 'https';
@@ -170,7 +175,7 @@ router.post(
       await tx.execute(
         `INSERT INTO users (id, email, password_hash, is_active)
          VALUES ($1, $2, $3, $4)`,
-        [userId, parsed.email, passwordHash, true]
+        [userId, parsed.email, passwordHash, false]
       );
 
       await tx.execute(
@@ -235,19 +240,50 @@ router.post(
       }
     });
 
-    const { accessToken, rawRefreshToken } = await issueSessionTokens(db, userId, parsed.username);
-    setRefreshCookie(req, res, rawRefreshToken);
-
-    const userBundle = await loadAuthUserBundle(db, userId);
-    res.status(201).json({
-      success: true,
-      data: {
-        accessToken,
-        user: userBundle,
-      },
-    });
+    const rawToken = generateOpaqueToken().slice(0, 32);
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await db.execute(
+      'INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)',
+      [crypto.randomUUID(), userId, hashOpaqueToken(rawToken), expiresAt]
+    );
+    const verifyUrl = env.appUrl.replace(/\/$/, '') + '/api/auth/verify-email?token=' + encodeURIComponent(rawToken);
+    await sendEmail(parsed.email, 'تأكيد بريدك الإلكتروني', actionEmail('تأكيد البريد الإلكتروني', 'اضغط على الرابط أدناه لتفعيل حسابك. الرابط صالح لمدة 24 ساعة ويستخدم مرة واحدة.', verifyUrl, 'تأكيد البريد الإلكتروني'));
+    res.status(201).json({ success: true, data: { message: 'تم إنشاء الحساب. أرسلنا رابط التأكيد إلى بريدك الإلكتروني؛ افتحه لتفعيل الحساب ثم سجّل الدخول.' } });
   })
 );
+
+router.get('/verify-email', asyncHandler(async (req, res) => {
+  const token = typeof req.query.token === 'string' ? req.query.token : '';
+  if (!token) throw new AppError(400, 'INVALID_VERIFICATION_TOKEN', 'رابط التأكيد غير صالح');
+  const db = getDb();
+  const row = await db.queryOne<{ id: string; user_id: string; expires_at: string; used_at: string | null }>(
+    'SELECT id, user_id, expires_at, used_at FROM email_verification_tokens WHERE token_hash = $1',
+    [hashOpaqueToken(token)]
+  );
+  if (!row || row.used_at || new Date(row.expires_at).getTime() <= Date.now()) {
+    throw new AppError(400, 'INVALID_VERIFICATION_TOKEN', 'رابط التأكيد غير صالح أو منتهي الصلاحية');
+  }
+  await db.transaction(async (tx) => {
+    await tx.execute('UPDATE users SET is_active = $1, updated_at = $2 WHERE id = $3', [true, new Date().toISOString(), row.user_id]);
+    await tx.execute('UPDATE email_verification_tokens SET used_at = $1 WHERE id = $2 AND used_at IS NULL', [new Date().toISOString(), row.id]);
+  });
+  res.redirect(303, env.appUrl.replace(/\/$/, '') + '/?emailVerified=1');
+}));
+
+router.post('/resend-verification', authRateLimiter, asyncHandler(async (req, res) => {
+  const parsed = forgotPasswordSchema.parse(req.body);
+  const db = getDb();
+  const user = await db.queryOne<{ id: string }>('SELECT id FROM users WHERE LOWER(email) = LOWER($1) AND is_active = $2', [parsed.email, false]);
+  if (user) {
+    const raw = generateOpaqueToken().slice(0, 32);
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+    await db.execute('UPDATE email_verification_tokens SET used_at = $1 WHERE user_id = $2 AND used_at IS NULL', [new Date().toISOString(), user.id]);
+    await db.execute('INSERT INTO email_verification_tokens (id, user_id, token_hash, expires_at) VALUES ($1, $2, $3, $4)', [crypto.randomUUID(), user.id, hashOpaqueToken(raw), expires]);
+    const url = env.appUrl.replace(/\/$/, '') + '/api/auth/verify-email?token=' + encodeURIComponent(raw);
+    await sendEmail(parsed.email, 'رابط تأكيد البريد الإلكتروني', actionEmail('تأكيد البريد الإلكتروني', 'استخدم الرابط أدناه لتفعيل حسابك. صالح لمدة 24 ساعة.', url, 'تأكيد البريد'));
+  }
+  res.json({ success: true, data: { message: 'إذا كان الحساب ينتظر التأكيد، فسيصلك رابط جديد إلى بريدك.' } });
+}));
 
 router.post(
   '/login',
@@ -367,6 +403,13 @@ router.post(
   })
 );
 
+router.get('/reset-password', (req, res) => {
+  const token = typeof req.query.token === 'string' ? req.query.token.replace(/[&<>"]/g, '') : '';
+  if (!token) return res.status(400).send('رابط الاستعادة غير صالح.');
+  const safeToken = JSON.stringify(token);
+  res.type('html').send('<!doctype html><html lang="ar" dir="rtl"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>تغيير كلمة المرور</title><body style="font-family:Arial;background:#f4f6f8;padding:24px"><form id="f" style="max-width:420px;margin:10vh auto;background:white;padding:28px;border-radius:16px"><h2>تعيين كلمة مرور جديدة</h2><label>كلمة المرور الجديدة</label><input id="p" type="password" minlength="8" required style="display:block;width:100%;padding:12px;margin:12px 0;box-sizing:border-box"><button style="padding:12px 20px;background:#0d6e52;color:white;border:0;border-radius:8px">حفظ كلمة المرور</button><p id="m"></p></form><script>document.getElementById("f").addEventListener("submit",async e=>{e.preventDefault();const m=document.getElementById("m");try{const r=await fetch("/api/auth/reset-password",{method:"POST",headers:{"Content-Type":"application/json","X-Requested-With":"XMLHttpRequest"},body:JSON.stringify({token:'+safeToken+',newPassword:document.getElementById("p").value})});const j=await r.json();m.textContent=j.data?.message||j.error?.message||"حدث خطأ";if(r.ok)document.getElementById("f").reset()}catch{m.textContent="تعذر الاتصال بالخادم"}})</script></body></html>');
+});
+
 router.post(
   '/forgot-password',
   authRateLimiter,
@@ -379,29 +422,20 @@ router.post(
       [parsed.email, true]
     );
 
-    let previewResetToken: string | undefined;
-
     if (userRow) {
       const rawResetToken = generateOpaqueToken().slice(0, 32);
       const tokenHash = hashOpaqueToken(rawResetToken);
       const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+      await db.execute('UPDATE password_reset_tokens SET used_at = $1 WHERE user_id = $2 AND used_at IS NULL', [new Date().toISOString(), userRow.id]);
       await db.execute(
         `INSERT INTO password_reset_tokens (id, user_id, token_hash, expires_at)
          VALUES ($1, $2, $3, $4)`,
         [crypto.randomUUID(), userRow.id, tokenHash, expiresAt]
       );
-      if (!env.isProduction) {
-        previewResetToken = rawResetToken;
-      }
+      const resetUrl = env.appUrl.replace(/\/$/, '') + '/api/auth/reset-password?token=' + encodeURIComponent(rawResetToken);
+      await sendEmail(parsed.email, 'استعادة كلمة المرور', actionEmail('استعادة كلمة المرور', 'الرابط صالح لمدة 30 دقيقة ويستخدم مرة واحدة.', resetUrl, 'تغيير كلمة المرور'));
     }
-
-    res.json({
-      success: true,
-      data: {
-        message: 'إذا كان البريد مسجلاً لدينا، فقد تم إنشاء رمز استعادة كلمة المرور.',
-        ...(previewResetToken ? { previewResetToken } : {}),
-      },
-    });
+    res.json({ success: true, data: { message: 'إذا كان البريد مسجلاً لدينا، فستصلك رسالة تحتوي على رابط استعادة كلمة المرور.' } });
   })
 );
 
