@@ -271,6 +271,28 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     expect(dup.status).toBe(409);
   });
 
+  it('downloads a bounded offline pack with verses and poets for the included poems', async () => {
+    const response = await fetch(`${baseUrl}/api/sync/pack`);
+    expect(response.status).toBe(200);
+
+    const body = (await response.json()) as {
+      success: boolean;
+      data: {
+        poems: Array<{ poetId: number; verses: unknown[] }>;
+        poets: Array<{ id: number }>;
+        questionPacks: Array<{ questions: unknown[] }>;
+      };
+    };
+
+    expect(body.success).toBe(true);
+    expect(body.data.poems.length).toBeLessThanOrEqual(50);
+    expect(body.data.poems.every((poem) => poem.verses.length > 0)).toBe(true);
+    const includedPoetIds = new Set(body.data.poems.map((poem) => poem.poetId));
+    expect(body.data.poets.every((poet) => includedPoetIds.has(poet.id))).toBe(true);
+    expect(body.data.questionPacks).toHaveLength(3);
+    expect(body.data.questionPacks.every((pack) => pack.questions.length === 15)).toBe(true);
+  });
+
   it('runs a full gameplay session, prevents answering a question twice, and computes XP server-side', async () => {
     const startRes = await fetch(`${baseUrl}/api/game/sessions`, {
       method: 'POST',
