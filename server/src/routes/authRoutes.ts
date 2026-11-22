@@ -23,7 +23,7 @@ import {
 import { AppError, asyncHandler } from '../middleware/errorHandler.ts';
 import { authRateLimiter } from '../middleware/rateLimit.ts';
 import { sendEmail } from '../services/email.ts';
-import { verifyFirebaseIdToken } from '../services/firebaseAdmin.ts';
+import { deleteFirebaseUser, verifyFirebaseIdToken } from '../services/firebaseAdmin.ts';
 
 const router = Router();
 const REFRESH_COOKIE_NAME = 'qafiyah_refresh';
@@ -711,6 +711,19 @@ router.delete(
   asyncHandler(async (req: AuthenticatedRequest, res) => {
     const db = getDb();
     const userId = req.authUser!.userId;
+    const account = await db.queryOne<{ firebase_uid: string | null }>(
+      'SELECT firebase_uid FROM users WHERE id = $1',
+      [userId]
+    );
+    if (account?.firebase_uid) {
+      try {
+        await deleteFirebaseUser(account.firebase_uid);
+      } catch (error) {
+        if ((error as { code?: string })?.code !== 'auth/user-not-found') {
+          throw new AppError(502, 'FIREBASE_ACCOUNT_DELETE_FAILED', 'تعذر حذف هوية Firebase. لم يتم حذف بيانات حسابك.');
+        }
+      }
+    }
     await db.execute('DELETE FROM users WHERE id = $1', [userId]);
     clearRefreshCookie(req, res);
     res.json({
