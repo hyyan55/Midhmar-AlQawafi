@@ -147,7 +147,7 @@ export interface UserProfile {
   displayName: string;
   email: string;
   avatarId: string;
-  avatarUrl: string | null;
+  avatarUrl?: string | null;
   bio: string;
   timezone: string;
   createdAt: string;
