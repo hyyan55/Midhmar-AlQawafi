@@ -20,6 +20,7 @@ import {
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
 import { formatDurationAr } from '../utils/feedback.ts';
+import heroManuscriptImage from '../assets/images/hero_manuscript_desk_1795291813917.jpg';
 
 interface HomeScreenProps {
   onOpenAuthModal: () => void;
@@ -166,7 +167,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
 
         <div className="lg:col-span-5 rounded-2xl overflow-hidden border border-[#E8DEC8] dark:border-[#2B4164] bg-[#EEE6D4] dark:bg-[#172D50] relative min-h-[240px]">
           <img
-            src="/src/assets/images/hero_manuscript_desk_1795291813917.jpg"
+            src={heroManuscriptImage}
             alt="مخطوطة شعرية عربية وقلم قصب"
             referrerPolicy="no-referrer"
             className="w-full h-full object-cover" loading="eager" fetchPriority="high" decoding="async" />
