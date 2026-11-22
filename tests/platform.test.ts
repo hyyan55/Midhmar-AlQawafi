@@ -19,11 +19,14 @@ import type { Server } from 'node:http';
 
 // Force every API route in this suite to use the isolated temporary SQLite database.
 // This prevents inherited PGHOST / DATABASE_URL values from sending tests to Aiven.
-const testDbState = vi.hoisted(() => ({ path: '' }));
+const testDbState = vi.hoisted(() => ({ path: '', verificationToken: '' }));
 
 // Keep API tests independent from external SMTP availability.
 vi.mock('../server/src/services/email.ts', () => ({
-  sendEmail: vi.fn().mockResolvedValue(undefined),
+  sendEmail: vi.fn(async (_to: string, _subject: string, html: string) => {
+    const match = html.match(/token=([^&"\\s]+)/);
+    if (match) testDbState.verificationToken = decodeURIComponent(match[1]);
+  }),
 }));
 
 vi.mock('../server/src/db/database.ts', async (importOriginal) => {
@@ -190,7 +193,23 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     });
 
     expect(res.status).toBe(201);
-    const body = (await res.json()) as {
+    const registration = (await res.json()) as { success: boolean; data: { message: string } };
+    expect(registration.success).toBe(true);
+    expect(testDbState.verificationToken).toBeTruthy();
+
+    const verification = await fetch(
+      `${baseUrl}/api/auth/verify-email?token=${encodeURIComponent(testDbState.verificationToken)}`,
+      { redirect: 'manual' }
+    );
+    expect(verification.status).toBe(303);
+
+    const login = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'zuhayr@example.com', password: 'StrongPassword123' }),
+    });
+    expect(login.status).toBe(200);
+    const body = (await login.json()) as {
       success: boolean;
       data: { accessToken: string; user: { profile: { userId: string }; stats: { totalXp: number } } };
     };
