@@ -90,9 +90,9 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-10 space-y-10">
       {/* Hero Split Banner */}
       <section className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-        <div className="lg:col-span-7 flex flex-col justify-between rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-6 sm:p-8">
+        <div className="lg:col-span-7 flex flex-col justify-between rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-6 sm:p-8">
           <div className="space-y-4">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[#626777] dark:text-[#C5CDDB]">
               <span>أهلاً بك، {activeDisplayName}</span>
               <span aria-hidden="true">·</span>
               <span>{rankTitle}</span>
@@ -108,7 +108,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
               ميدان الأصالة والشعر العربي الموثّق
             </h1>
 
-            <p className="text-sm sm:text-base text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed max-w-2xl">
+            <p className="text-sm sm:text-base text-[#626777] dark:text-[#C5CDDB] leading-relaxed max-w-2xl">
               اختبر ذاكرتك الشعرية مع روائع القصائد من العصر الجاهلي إلى الحديث، وأتمّ القوافي، وتعرّف إلى أعلام الشعراء وبحور الخليل.
             </p>
           </div>
@@ -120,13 +120,13 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
                 <span className="font-semibold">
                   المستوى <span className="font-mono-tabular">{activeStats.level}</span>
                 </span>
-                <span className="font-mono-tabular text-[#5E615E] dark:text-[#A0A8B0]">
+                <span className="font-mono-tabular text-[#626777] dark:text-[#C5CDDB]">
                   {activeStats.totalXp} / {nextLevelXp} نقطة خبرة
                 </span>
               </div>
-              <div className="h-2.5 w-full rounded-full bg-[#EFECE4] dark:bg-[#0F1419] overflow-hidden">
+              <div className="h-2.5 w-full rounded-full bg-[#EEE6D4] dark:bg-[#102448] overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-[#0D6E52] dark:bg-[#18A87E] transition-all duration-300"
+                  className="h-full rounded-full bg-[#14284B] dark:bg-[#E0B84F] transition-all duration-300"
                   style={{ width: `${levelProgress}%` }}
                 />
               </div>
@@ -137,7 +137,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
                 type="button"
                 disabled={startingMode !== null}
                 onClick={() => handleQuickStart(dailyCompleted ? 'who_said' : 'daily_challenge')}
-                className="px-5 py-3 rounded-xl bg-[#0D6E52] hover:bg-[#0A5740] dark:bg-[#18A87E] dark:hover:bg-[#14906B] text-white dark:text-[#0F1419] font-semibold text-sm transition-colors flex items-center gap-2 min-h-[46px]"
+                className="px-5 py-3 rounded-xl bg-[#14284B] hover:bg-[#0D1D39] dark:bg-[#E0B84F] dark:hover:bg-[#C69B2F] text-white dark:text-[#102448] font-semibold text-sm transition-colors flex items-center gap-2 min-h-[46px]"
               >
                 <span>{dailyCompleted ? 'ابدأ تحدياً سريعاً' : 'خض التحدي اليومي'}</span>
                 <ArrowLeft className="w-4 h-4" />
@@ -146,7 +146,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
               <button
                 type="button"
                 onClick={() => navigate('library')}
-                className="px-5 py-3 rounded-xl bg-[#EFECE4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-[#181A1B] dark:text-[#F3EFE6] font-medium text-sm transition-colors min-h-[46px]"
+                className="px-5 py-3 rounded-xl bg-[#EEE6D4] hover:bg-[#E5E0D5] dark:bg-[#1E2732] dark:hover:bg-[#273240] text-[#17233A] dark:text-[#F7F3E8] font-medium text-sm transition-colors min-h-[46px]"
               >
                 تصفح مكتبة الشعر
               </button>
@@ -155,7 +155,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
                 <button
                   type="button"
                   onClick={onOpenAuthModal}
-                  className="px-4 py-3 text-sm font-medium text-[#0D6E52] dark:text-[#18A87E] hover:underline min-h-[46px]"
+                  className="px-4 py-3 text-sm font-medium text-[#14284B] dark:text-[#E0B84F] hover:underline min-h-[46px]"
                 >
                   حفظ التقدم بحساب
                 </button>
@@ -164,7 +164,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
           </div>
         </div>
 
-        <div className="lg:col-span-5 rounded-2xl overflow-hidden border border-[#DFD9CE] dark:border-[#2A3542] bg-[#EFECE4] dark:bg-[#171E26] relative min-h-[240px]">
+        <div className="lg:col-span-5 rounded-2xl overflow-hidden border border-[#E8DEC8] dark:border-[#2B4164] bg-[#EEE6D4] dark:bg-[#172D50] relative min-h-[240px]">
           <img
             src="/src/assets/images/hero_manuscript_desk_1795291813917.jpg"
             alt="مخطوطة شعرية عربية وقلم قصب"
@@ -181,44 +181,44 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
 
       {/* 4-Column Stat Strip below Hero */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0] mb-2">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB] mb-2">
             <span>السلسلة اليومية</span>
             <Flame className="w-4 h-4 text-[#B47B1B] dark:text-[#E5A93C]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular">{activeStats.currentStreak} أيام</div>
-          <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] mt-1">
+          <p className="text-xs text-[#626777] dark:text-[#C5CDDB] mt-1">
             أطول سلسلة: <span className="font-mono-tabular">{activeStats.longestStreak}</span>
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0] mb-2">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB] mb-2">
             <span>التحدي اليومي</span>
-            <Calendar className="w-4 h-4 text-[#0D6E52] dark:text-[#18A87E]" />
+            <Calendar className="w-4 h-4 text-[#14284B] dark:text-[#E0B84F]" />
           </div>
           <div className="text-xl font-bold">{dailyCompleted ? 'مكتمل اليوم' : 'متاح الآن'}</div>
-          <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] mt-1">مكافأة مضاعفة ١.٥×</p>
+          <p className="text-xs text-[#626777] dark:text-[#C5CDDB] mt-1">مكافأة مضاعفة ١.٥×</p>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0] mb-2">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB] mb-2">
             <span>نسبة الدقة</span>
             <Trophy className="w-4 h-4 text-[#B47B1B] dark:text-[#E5A93C]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular">{accuracy}%</div>
-          <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] mt-1">
+          <p className="text-xs text-[#626777] dark:text-[#C5CDDB] mt-1">
             <span className="font-mono-tabular">{activeStats.correctAnswers}</span> إجابة صحيحة
           </p>
         </div>
 
-        <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-5">
-          <div className="flex items-center justify-between text-xs text-[#5E615E] dark:text-[#A0A8B0] mb-2">
+        <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-5">
+          <div className="flex items-center justify-between text-xs text-[#626777] dark:text-[#C5CDDB] mb-2">
             <span>الجولات المكتملة</span>
-            <History className="w-4 h-4 text-[#0D6E52] dark:text-[#18A87E]" />
+            <History className="w-4 h-4 text-[#14284B] dark:text-[#E0B84F]" />
           </div>
           <div className="text-2xl font-bold font-mono-tabular">{activeStats.gamesPlayed}</div>
-          <p className="text-xs text-[#5E615E] dark:text-[#A0A8B0] mt-1">
+          <p className="text-xs text-[#626777] dark:text-[#C5CDDB] mt-1">
             نقاط الخبرة: <span className="font-mono-tabular">{activeStats.totalXp}</span>
           </p>
         </div>
@@ -231,7 +231,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
           <button
             type="button"
             onClick={() => navigate('modes')}
-            className="text-sm font-medium text-[#0D6E52] dark:text-[#18A87E] hover:underline whitespace-nowrap"
+            className="text-sm font-medium text-[#14284B] dark:text-[#E0B84F] hover:underline whitespace-nowrap"
           >
             جميع الأوضاع
           </button>
@@ -246,21 +246,21 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
                 type="button"
                 disabled={startingMode !== null}
                 onClick={() => handleQuickStart(mode)}
-                className="text-right rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] hover:border-[#0D6E52] dark:hover:border-[#18A87E] p-6 transition-colors flex flex-col justify-between gap-4"
+                className="text-right rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] hover:border-[#14284B] dark:hover:border-[#E0B84F] p-6 transition-colors flex flex-col justify-between gap-4"
               >
                 <div className="space-y-2.5">
                   <div className="flex items-center justify-between">
-                    <Icon className="w-5 h-5 text-[#0D6E52] dark:text-[#18A87E]" />
-                    <span className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                    <Icon className="w-5 h-5 text-[#14284B] dark:text-[#E0B84F]" />
+                    <span className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                       {meta.questionCount} أسئلة · {meta.xpMultiplierLabel}
                     </span>
                   </div>
                   <h3 className="text-lg font-bold font-poetry">{meta.titleAr}</h3>
-                  <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0] leading-relaxed">
+                  <p className="text-sm text-[#626777] dark:text-[#C5CDDB] leading-relaxed">
                     {meta.descriptionAr}
                   </p>
                 </div>
-                <div className="text-sm font-semibold text-[#0D6E52] dark:text-[#18A87E] flex items-center gap-1.5">
+                <div className="text-sm font-semibold text-[#14284B] dark:text-[#E0B84F] flex items-center gap-1.5">
                   <span>{startingMode === mode ? 'جارٍ التحضير...' : 'ابدأ الجولة'}</span>
                   <ArrowLeft className="w-4 h-4" />
                 </div>
@@ -277,27 +277,27 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
           <button
             type="button"
             onClick={() => navigate('profile')}
-            className="text-sm font-medium text-[#0D6E52] dark:text-[#18A87E] hover:underline"
+            className="text-sm font-medium text-[#14284B] dark:text-[#E0B84F] hover:underline"
           >
             السجل الكامل
           </button>
         </div>
 
         {recentHistory.length === 0 ? (
-          <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] p-8 text-center space-y-3">
-            <p className="text-sm text-[#5E615E] dark:text-[#A0A8B0]">
+          <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] p-8 text-center space-y-3">
+            <p className="text-sm text-[#626777] dark:text-[#C5CDDB]">
               لم تخض أي جولة تحدٍّ بعد. ابدأ أول جولة الآن لتوثيق تقدمك الشعري!
             </p>
             <button
               type="button"
               onClick={() => handleQuickStart('who_said')}
-              className="px-4 py-2.5 rounded-xl bg-[#0D6E52] dark:bg-[#18A87E] text-white dark:text-[#0F1419] text-sm font-semibold min-h-[44px]"
+              className="px-4 py-2.5 rounded-xl bg-[#14284B] dark:bg-[#E0B84F] text-white dark:text-[#102448] text-sm font-semibold min-h-[44px]"
             >
               ابدأ تحدي من قائل البيت؟
             </button>
           </div>
         ) : (
-          <div className="rounded-2xl bg-white dark:bg-[#171E26] border border-[#DFD9CE] dark:border-[#2A3542] divide-y divide-[#DFD9CE] dark:divide-[#2A3542]">
+          <div className="rounded-2xl bg-white dark:bg-[#172D50] border border-[#E8DEC8] dark:border-[#2B4164] divide-y divide-[#E8DEC8] dark:divide-[#2B4164]">
             {recentHistory.map((item) => (
               <div
                 key={item.sessionId}
@@ -305,7 +305,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
               >
                 <div className="space-y-1">
                   <div className="font-semibold text-sm">{GAME_MODES_META[item.mode].titleAr}</div>
-                  <div className="text-xs text-[#5E615E] dark:text-[#A0A8B0]">
+                  <div className="text-xs text-[#626777] dark:text-[#C5CDDB]">
                     <span className="font-mono-tabular">
                       {item.correctCount}/{item.totalQuestions}
                     </span>{' '}
@@ -313,7 +313,7 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({ onOpenAuthModal }) => {
                     <span className="font-mono-tabular">{formatDurationAr(item.durationSeconds)}</span>
                   </div>
                 </div>
-                <div className="text-sm font-bold font-mono-tabular text-[#0D6E52] dark:text-[#18A87E]">
+                <div className="text-sm font-bold font-mono-tabular text-[#14284B] dark:text-[#E0B84F]">
                   +{item.xpEarned} XP
                 </div>
               </div>
