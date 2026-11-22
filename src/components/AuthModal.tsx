@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
 import { useApp } from '../context/AppContext.tsx';
 import { apiClient } from '../services/apiClient.ts';
 import { firebaseAuth, sendPasswordResetEmail } from '../services/firebase.ts';
@@ -20,6 +20,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
   const [displayName, setDisplayName] = useState('');
   const [username, setUsername] = useState('');
   const [migrateGuest, setMigrateGuest] = useState(true);
@@ -187,6 +189,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <label className="block text-xs sm:text-sm font-medium mb-1">البريد الإلكتروني</label>
               <input
                 type="email"
+                list="midhmar-email-domains"
+                autoComplete="email"
                 required
                 dir="ltr"
                 value={email}
@@ -194,21 +198,39 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 placeholder="reader@example.com"
                 className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B] text-left"
               />
+              <datalist id="midhmar-email-domains">
+                <option value="@gmail.com" />
+                <option value="@outlook.com" />
+                <option value="@hotmail.com" />
+                <option value="@yahoo.com" />
+                <option value="@icloud.com" />
+              </datalist>
             </div>
           )}
 
           {(mode === 'login' || mode === 'register') && (
             <div>
               <label className="block text-xs sm:text-sm font-medium mb-1">كلمة المرور</label>
-              <input
-                type="password"
-                required
-                minLength={8}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="٨ أحرف على الأقل"
-                className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  minLength={8}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="٨ أحرف على الأقل"
+                  autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                  className="w-full px-3 py-2 sm:py-2.5 pl-11 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm focus:outline-none focus:border-[#14243B]"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((visible) => !visible)}
+                  aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-[#697586] dark:text-[#C0CAD6]"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
             </div>
           )}
 
@@ -227,14 +249,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </div>
               <div>
                 <label className="block text-xs sm:text-sm font-medium mb-1">كلمة المرور الجديدة</label>
-                <input
-                  type="password"
-                  required
-                  minLength={8}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full px-3 py-2 sm:py-2.5 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm"
-                />
+                <div className="relative">
+                  <input
+                    type={showNewPassword ? 'text' : 'password'}
+                    required
+                    minLength={8}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                    className="w-full px-3 py-2 sm:py-2.5 pl-11 rounded-xl bg-[#F5F1E8] dark:bg-[#14243B] border border-[#E2D8C5] dark:border-[#35465E] text-sm"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowNewPassword((visible) => !visible)}
+                    aria-label={showNewPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    className="absolute left-2 top-1/2 -translate-y-1/2 min-h-[36px] min-w-[36px] flex items-center justify-center rounded-lg text-[#697586] dark:text-[#C0CAD6]"
+                  >
+                    {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
               </div>
             </>
           )}
