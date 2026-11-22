@@ -88,6 +88,7 @@ export const updateProfileSchema = z.object({
   displayName: displayNameSchema.optional(),
   username: usernameSchema.optional(),
   avatarId: z.string().trim().min(1).max(40).optional(),
+  avatarUrl: z.string().url().max(2048).nullable().optional(),
   bio: z.string().trim().max(240).optional(),
   timezone: z.string().trim().min(1).max(64).optional(),
 });

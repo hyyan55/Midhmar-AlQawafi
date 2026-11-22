@@ -24,6 +24,7 @@ router.get(
         username: string;
         display_name: string;
         avatar_id: string;
+        avatar_url: string | null;
         level: number;
         total_xp: number;
         total_questions: number;
@@ -32,7 +33,7 @@ router.get(
         current_streak: number;
       }>(
         `SELECT
-           up.user_id, up.username, up.display_name, up.avatar_id,
+           up.user_id, up.username, up.display_name, up.avatar_id, up.avatar_url,
            ps.level, ps.total_xp, ps.total_questions, ps.correct_answers,
            ps.games_played, ps.current_streak
          FROM player_stats ps
@@ -50,6 +51,7 @@ router.get(
         username: r.username,
         displayName: r.display_name,
         avatarId: r.avatar_id,
+        avatarUrl: r.avatar_url,
         level: Number(r.level),
         xp: Number(r.total_xp),
         accuracy:
@@ -68,6 +70,7 @@ router.get(
         username: string;
         display_name: string;
         avatar_id: string;
+        avatar_url: string | null;
         level: number;
         current_streak: number;
         period_xp: number;
@@ -76,7 +79,7 @@ router.get(
         period_games: number;
       }>(
         `SELECT
-           up.user_id, up.username, up.display_name, up.avatar_id,
+           up.user_id, up.username, up.display_name, up.avatar_id, up.avatar_url,
            ps.level, ps.current_streak,
            SUM(gs.xp_earned) AS period_xp,
            SUM(gs.total_questions) AS period_questions,
@@ -89,7 +92,7 @@ router.get(
          WHERE gs.status = 'completed'
            AND gs.completed_at >= $1
            AND pset.show_on_leaderboard = $2
-         GROUP BY up.user_id, up.username, up.display_name, up.avatar_id, ps.level, ps.current_streak
+         GROUP BY up.user_id, up.username, up.display_name, up.avatar_id, up.avatar_url, ps.level, ps.current_streak
          ORDER BY period_xp DESC, period_correct DESC
          LIMIT $3`,
         [sinceIso, true, limit]
@@ -101,6 +104,7 @@ router.get(
         username: r.username,
         displayName: r.display_name,
         avatarId: r.avatar_id,
+        avatarUrl: r.avatar_url,
         level: Number(r.level),
         xp: Number(r.period_xp),
         accuracy:

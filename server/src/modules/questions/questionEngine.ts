@@ -3,6 +3,13 @@ import type { ChallengeQuestion, GameMode, QuestionOption } from '../../../../pa
 import { GAME_MODES_META } from '../../../../packages/shared/src/constants.ts';
 import type { DbClient } from '../../db/database.ts';
 
+type QuestionSourcePool = {
+  allVerses: VerseJoinRow[];
+  allPoets: Array<{ id: number; name_ar: string; era_id: number; era_name_ar: string }>;
+  allEras: Array<{ id: number; name_ar: string; period_label: string }>;
+};
+const questionSourcePoolCache = new Map<string, { expiresAt: number; promise: Promise<QuestionSourcePool> }>();
+
 export interface StoredQuestionWithAnswer extends ChallengeQuestion {
   correctOptionId: string;
   correctOptionLabel: string;
@@ -56,106 +63,76 @@ export async function generateQuestionsForMode(
   const meta = GAME_MODES_META[params.mode];
   const targetCount = params.count ?? meta.questionCount;
 
-  // Never load the full poetry corpus into the API process. The production
-  // database may contain close to a million verses, which exceeds the memory
-  // available on the Render free instance. Read a bounded window instead.
-  // Apply the selected era in SQL before limiting the result set. Filtering
-  // after LIMIT could return no verses (or verses from another era) for a
-  // perfectly valid era whose rows are outside the randomly selected window.
-  let eraFilter = params.eraId ? 'WHERE p.era_id = $1' : '';
-  let countParams: number[] = params.eraId ? [params.eraId] : [];
-  let verseCountRow = await db.queryOne<{ total: number | string }>(
-    `SELECT COUNT(*) AS total
-     FROM poem_verses pv
-     JOIN poems p ON pv.poem_id = p.id
-     JOIN poets po ON p.poet_id = po.id
-     JOIN eras e ON p.era_id = e.id
-     ${eraFilter}`,
-    countParams
-  );
-
-  // Preserve the previous fallback behavior for an unknown/empty era ID.
-  if (params.eraId && Number(verseCountRow?.total ?? 0) === 0) {
-    eraFilter = '';
-    countParams = [];
-    verseCountRow = await db.queryOne<{ total: number | string }>(
-      `SELECT COUNT(*) AS total
-       FROM poem_verses pv
-       JOIN poems p ON pv.poem_id = p.id
-       JOIN poets po ON p.poet_id = po.id
-       JOIN eras e ON p.era_id = e.id`
-    );
+  // Reuse a bounded source window for five minutes. This avoids repeated
+  // COUNT(*) scans and large OFFSET reads against the full poetry corpus.
+  const cacheKey = db.dialect === 'postgres'
+    ? `${db.dialect}:${params.eraId ?? 'all'}`
+    : `${db.dialect}:${crypto.randomUUID()}`;
+  const now = Date.now();
+  let cached = questionSourcePoolCache.get(cacheKey);
+  if (!cached || cached.expiresAt <= now) {
+    const promise = (async (): Promise<QuestionSourcePool> => {
+      const sampleSeed = params.seed ?? crypto.randomUUID();
+      const maxVerse = await db.queryOne<{ max_id: number | string | null }>(
+        params.eraId
+          ? 'SELECT MAX(pv.id) AS max_id FROM poem_verses pv JOIN poems p ON p.id = pv.poem_id WHERE p.era_id = $1'
+          : 'SELECT MAX(id) AS max_id FROM poem_verses',
+        params.eraId ? [params.eraId] : []
+      );
+      const maxVerseId = Number(maxVerse?.max_id ?? 0);
+      const pivot = maxVerseId > 0 ? 1 + deterministicHash(sampleSeed) % maxVerseId : 0;
+      const verseSelect = `SELECT pv.id AS verse_id, p.id AS poem_id, p.title_ar AS poem_title_ar,
+        pv.sadr, pv.ajuz, po.id AS poet_id, po.name_ar AS poet_name_ar, po.title_ar AS poet_title_ar,
+        e.id AS era_id, e.name_ar AS era_name_ar, e.period_label AS era_period, m.name_ar AS meter_name_ar
+        FROM poem_verses pv JOIN poems p ON pv.poem_id = p.id
+        JOIN poets po ON p.poet_id = po.id JOIN eras e ON p.era_id = e.id
+        LEFT JOIN meters m ON p.meter_id = m.id`;
+      const eraClause = params.eraId ? 'p.era_id = $1 AND ' : '';
+      const pivotParam = params.eraId ? '$2' : '$1';
+      const limitParam = params.eraId ? '$3' : '$2';
+      const afterParams = params.eraId ? [params.eraId, pivot, 500] : [pivot, 500];
+      let allVerses = await db.query<VerseJoinRow>(
+        `${verseSelect} WHERE ${eraClause}pv.id >= ${pivotParam} ORDER BY pv.id ASC LIMIT ${limitParam}`,
+        afterParams
+      );
+      if (allVerses.length < 500 && pivot > 1) {
+        const beforeParams = params.eraId ? [params.eraId, pivot, 500 - allVerses.length] : [pivot, 500 - allVerses.length];
+        allVerses = [...allVerses, ...(await db.query<VerseJoinRow>(
+          `${verseSelect} WHERE ${eraClause}pv.id < ${pivotParam} ORDER BY pv.id DESC LIMIT ${limitParam}`,
+          beforeParams
+        ))];
+      }
+      if (allVerses.length === 0 && params.eraId) {
+        const maxAll = await db.queryOne<{ max_id: number | string | null }>('SELECT MAX(id) AS max_id FROM poem_verses');
+        const maxId = Number(maxAll?.max_id ?? 0);
+        const allPivot = maxId > 0 ? 1 + deterministicHash(sampleSeed) % maxId : 0;
+        allVerses = await db.query<VerseJoinRow>(`${verseSelect} WHERE pv.id >= $1 ORDER BY pv.id ASC LIMIT $2`, [allPivot, 500]);
+        if (allVerses.length < 500 && allPivot > 1) allVerses = [...allVerses, ...(await db.query<VerseJoinRow>(
+          `${verseSelect} WHERE pv.id < $1 ORDER BY pv.id DESC LIMIT $2`, [allPivot, 500 - allVerses.length]
+        ))];
+      }
+      const maxPoet = await db.queryOne<{ max_id: number | string | null }>('SELECT MAX(id) AS max_id FROM poets');
+      const maxPoetId = Number(maxPoet?.max_id ?? 0);
+      const poetPivot = maxPoetId > 0 ? 1 + deterministicHash(`${sampleSeed}:poets`) % maxPoetId : 0;
+      let allPoets = await db.query<{ id: number; name_ar: string; era_id: number; era_name_ar: string }>(
+        `SELECT po.id, po.name_ar, po.era_id, e.name_ar AS era_name_ar FROM poets po
+         JOIN eras e ON po.era_id = e.id WHERE po.id >= $1 ORDER BY po.id ASC LIMIT $2`, [poetPivot, 500]
+      );
+      if (allPoets.length < 500 && poetPivot > 1) allPoets = [...allPoets, ...(await db.query<
+        { id: number; name_ar: string; era_id: number; era_name_ar: string }
+      >(`SELECT po.id, po.name_ar, po.era_id, e.name_ar AS era_name_ar FROM poets po
+         JOIN eras e ON po.era_id = e.id WHERE po.id < $1 ORDER BY po.id DESC LIMIT $2`,
+      [poetPivot, 500 - allPoets.length]))];
+      const allEras = await db.query<{ id: number; name_ar: string; period_label: string }>(
+        'SELECT id, name_ar, period_label FROM eras ORDER BY sort_order ASC LIMIT 100'
+      );
+      return { allVerses, allPoets, allEras };
+    })();
+    cached = { expiresAt: now + 5 * 60 * 1000, promise };
+    questionSourcePoolCache.set(cacheKey, cached);
+    promise.catch(() => { if (questionSourcePoolCache.get(cacheKey)?.promise === promise) questionSourcePoolCache.delete(cacheKey); });
   }
-
-  const totalVerses = Number(verseCountRow?.total ?? 0);
-  const sampleLimit = Math.min(totalVerses, 500);
-  const maxOffset = Math.max(0, totalVerses - sampleLimit);
-  const sampleSeed = params.seed ?? crypto.randomUUID();
-  const sampleOffset = maxOffset > 0 ? deterministicHash(sampleSeed) % (maxOffset + 1) : 0;
-  const limitPlaceholder = params.eraId && eraFilter ? '$2' : '$1';
-  const offsetPlaceholder = params.eraId && eraFilter ? '$3' : '$2';
-  const verseQueryParams = params.eraId && eraFilter
-    ? [params.eraId, sampleLimit, sampleOffset]
-    : [sampleLimit, sampleOffset];
-
-  const allVerses = await db.query<VerseJoinRow>(
-    `SELECT
-       pv.id AS verse_id,
-       p.id AS poem_id,
-       p.title_ar AS poem_title_ar,
-       pv.sadr,
-       pv.ajuz,
-       po.id AS poet_id,
-       po.name_ar AS poet_name_ar,
-       po.title_ar AS poet_title_ar,
-       e.id AS era_id,
-       e.name_ar AS era_name_ar,
-       e.period_label AS era_period,
-       m.name_ar AS meter_name_ar
-     FROM poem_verses pv
-     JOIN poems p ON pv.poem_id = p.id
-     JOIN poets po ON p.poet_id = po.id
-     JOIN eras e ON p.era_id = e.id
-     LEFT JOIN meters m ON p.meter_id = m.id
-     ${eraFilter}
-     ORDER BY pv.id ASC
-     LIMIT ${limitPlaceholder} OFFSET ${offsetPlaceholder}`,
-    verseQueryParams
-  );
-
-  // The poets table can also be large in imported corpora. Keep the
-  // distractor pool bounded instead of loading every poet into Node memory.
-  const poetCountRow = await db.queryOne<{ total: number | string }>(
-    `SELECT COUNT(*) AS total
-     FROM poets po
-     JOIN eras e ON po.era_id = e.id`
-  );
-  const totalPoets = Number(poetCountRow?.total ?? 0);
-  const poetSampleLimit = Math.min(totalPoets, 500);
-  const maxPoetOffset = Math.max(0, totalPoets - poetSampleLimit);
-  const poetSampleOffset = maxPoetOffset > 0
-    ? deterministicHash(`${sampleSeed}:poets`) % (maxPoetOffset + 1)
-    : 0;
-
-  const allPoets = await db.query<{
-    id: number;
-    name_ar: string;
-    era_id: number;
-    era_name_ar: string;
-  }>(
-    `SELECT po.id, po.name_ar, po.era_id, e.name_ar AS era_name_ar
-     FROM poets po
-     JOIN eras e ON po.era_id = e.id
-     ORDER BY po.id ASC
-     LIMIT $1 OFFSET $2`,
-    [poetSampleLimit, poetSampleOffset]
-  );
-
-  const allEras = await db.query<{
-    id: number;
-    name_ar: string;
-    period_label: string;
-  }>('SELECT id, name_ar, period_label FROM eras ORDER BY sort_order ASC LIMIT 100');
+  const { allVerses, allPoets, allEras } = await cached.promise;
 
   let pool = params.eraId
     ? allVerses.filter((v) => Number(v.era_id) === params.eraId)

@@ -294,6 +294,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   username TEXT NOT NULL UNIQUE,
   display_name TEXT NOT NULL,
   avatar_id TEXT NOT NULL DEFAULT 'scholar_astrolabe',
+  avatar_url TEXT,
   bio TEXT NOT NULL DEFAULT '',
   timezone TEXT NOT NULL DEFAULT 'UTC',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -480,6 +481,7 @@ export async function runMigrations(customSqlitePath?: string): Promise<void> {
     const sqlite = getSqliteDb(customSqlitePath);
     sqlite.exec(SQLITE_SCHEMA_SQL);
     try { sqlite.exec('ALTER TABLE users ADD COLUMN firebase_uid TEXT'); } catch { /* Column already exists. */ }
+    try { sqlite.exec('ALTER TABLE user_profiles ADD COLUMN avatar_url TEXT'); } catch { /* Column already exists. */ }
     sqlite.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL');
     return;
   }
@@ -487,6 +489,7 @@ export async function runMigrations(customSqlitePath?: string): Promise<void> {
   const pgSchemaSql = fs.readFileSync(schemaPath, 'utf8');
   await getPgPool().query(pgSchemaSql);
   await getPgPool().query('ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid TEXT');
+  await getPgPool().query('ALTER TABLE user_profiles ADD COLUMN IF NOT EXISTS avatar_url TEXT');
   await getPgPool().query('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL');
 }
 

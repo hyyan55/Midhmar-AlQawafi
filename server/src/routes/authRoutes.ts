@@ -80,6 +80,7 @@ export async function loadAuthUserBundle(db: DbClient, userId: string) {
     username: string;
     display_name: string;
     avatar_id: string;
+    avatar_url: string | null;
     bio: string;
     timezone: string;
     created_at: string;
@@ -100,7 +101,7 @@ export async function loadAuthUserBundle(db: DbClient, userId: string) {
   }>(
     `SELECT
        u.id AS user_id, u.email, u.created_at,
-       up.username, up.display_name, up.avatar_id, up.bio, up.timezone,
+       up.username, up.display_name, up.avatar_id, up.avatar_url, up.bio, up.timezone,
        ps.total_xp, ps.level, ps.current_streak, ps.longest_streak, ps.last_played_date,
        ps.games_played, ps.total_questions, ps.correct_answers, ps.daily_challenges_completed,
        pset.theme, pset.sound_enabled, pset.vibration_enabled, pset.show_on_leaderboard, pset.share_activity_publicly
@@ -121,6 +122,7 @@ export async function loadAuthUserBundle(db: DbClient, userId: string) {
       displayName: row.display_name,
       email: row.email,
       avatarId: row.avatar_id,
+      avatarUrl: row.avatar_url,
       bio: row.bio,
       timezone: row.timezone,
       createdAt: String(row.created_at),

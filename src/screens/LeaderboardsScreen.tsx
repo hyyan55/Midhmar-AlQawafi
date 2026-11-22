@@ -143,7 +143,7 @@ export const LeaderboardsScreen: React.FC = () => {
                     #{entry.rank}
                   </div>
                   <img
-                    src={getAvatarImageUrl(entry.avatarId)}
+                    src={entry.avatarUrl || getAvatarImageUrl(entry.avatarId)}
                     alt={entry.displayName}
                     referrerPolicy="no-referrer"
                     className="w-10 h-10 rounded-xl object-cover shrink-0"
