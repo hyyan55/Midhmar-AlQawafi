@@ -65,7 +65,9 @@ export async function generateQuestionsForMode(
 
   // Reuse a bounded source window for five minutes. This avoids repeated
   // COUNT(*) scans and large OFFSET reads against the full poetry corpus.
-  const cacheKey = `${db.dialect}:${params.eraId ?? 'all'}`;
+  const cacheKey = db.dialect === 'postgres'
+    ? `${db.dialect}:${params.eraId ?? 'all'}`
+    : `${db.dialect}:${crypto.randomUUID()}`;
   const now = Date.now();
   let cached = questionSourcePoolCache.get(cacheKey);
   if (!cached || cached.expiresAt <= now) {
