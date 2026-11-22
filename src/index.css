@@ -1,23 +1,49 @@
 @import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
 
+:root {
+  color-scheme: light;
+  --midhmar-navy: #102448;
+  --midhmar-navy-deep: #0D1D39;
+  --midhmar-gold: #E0B84F;
+  --midhmar-cream: #F7F3E8;
+  --midhmar-paper: #EEE6D4;
+}
+
 @layer base {
   html {
     font-family: "IBM Plex Sans Arabic", system-ui, -apple-system, sans-serif;
-    background-color: #f8f6f1;
-    color: #181a1b;
+    background-color: var(--midhmar-cream);
+    color: #17233A;
     -webkit-tap-highlight-color: transparent;
+    scrollbar-color: #C9B77E var(--midhmar-cream);
   }
 
   html.dark {
-    background-color: #0f1419;
-    color: #f3efe6;
+    color-scheme: dark;
+    background-color: var(--midhmar-navy);
+    color: var(--midhmar-cream);
+    scrollbar-color: #526482 var(--midhmar-navy);
   }
 
   body {
     min-height: 100dvh;
     margin: 0;
     overflow-x: hidden;
+  }
+
+  button, a {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  button:focus-visible, a:focus-visible {
+    outline: 2px solid var(--midhmar-gold);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: #E0B84F55;
+    color: #102448;
   }
 }
 
