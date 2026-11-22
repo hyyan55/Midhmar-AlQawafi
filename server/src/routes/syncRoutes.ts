@@ -20,28 +20,10 @@ router.get(
   asyncHandler(async (_req, res) => {
     const db = getDb();
 
-    const [eras, meters, themes, poets, poems] = await Promise.all([
+    const [eras, meters, themes, poems] = await Promise.all([
       db.query('SELECT * FROM eras ORDER BY sort_order ASC'),
       db.query('SELECT * FROM meters ORDER BY id ASC'),
       db.query('SELECT * FROM themes ORDER BY id ASC'),
-      db.query<{
-        id: number;
-        source_id: number | null;
-        slug: string;
-        name_ar: string;
-        title_ar: string | null;
-        era_id: number;
-        era_name_ar: string;
-        birth_year_label: string | null;
-        death_year_label: string | null;
-        bio_ar: string;
-        avatar_key: string | null;
-      }>(
-        `SELECT po.*, e.name_ar AS era_name_ar
-         FROM poets po
-         JOIN eras e ON po.era_id = e.id
-         ORDER BY po.id ASC`
-      ),
       db.query<{
         id: number;
         source_id: number | null;
@@ -83,13 +65,53 @@ router.get(
       ),
     ]);
 
-    const allVerses = await db.query<{
-      id: number;
-      poem_id: number;
-      verse_order: number;
-      sadr: string;
-      ajuz: string;
-    }>('SELECT id, poem_id, verse_order, sadr, ajuz FROM poem_verses ORDER BY poem_id ASC, verse_order ASC');
+    // The offline pack intentionally contains only the selected 50 poems.
+    // Fetch verses and poets for those poems only; loading the entire poetry
+    // corpus here can exhaust the API process memory on large databases.
+    const poemIds = poems.map((poem) => Number(poem.id));
+    const poetIds = [...new Set(poems.map((poem) => Number(poem.poet_id)))];
+    const poemPlaceholders = poemIds.map((_, index) => `$${index + 1}`).join(', ');
+    const poetPlaceholders = poetIds.map((_, index) => `$${index + 1}`).join(', ');
+
+    const [poets, allVerses] = await Promise.all([
+      poetIds.length
+        ? db.query<{
+            id: number;
+            source_id: number | null;
+            slug: string;
+            name_ar: string;
+            title_ar: string | null;
+            era_id: number;
+            era_name_ar: string;
+            birth_year_label: string | null;
+            death_year_label: string | null;
+            bio_ar: string;
+            avatar_key: string | null;
+          }>(
+            `SELECT po.*, e.name_ar AS era_name_ar
+             FROM poets po
+             JOIN eras e ON po.era_id = e.id
+             WHERE po.id IN (${poetPlaceholders})
+             ORDER BY po.id ASC`,
+            poetIds
+          )
+        : Promise.resolve([]),
+      poemIds.length
+        ? db.query<{
+            id: number;
+            poem_id: number;
+            verse_order: number;
+            sadr: string;
+            ajuz: string;
+          }>(
+            `SELECT id, poem_id, verse_order, sadr, ajuz
+             FROM poem_verses
+             WHERE poem_id IN (${poemPlaceholders})
+             ORDER BY poem_id ASC, verse_order ASC`,
+            poemIds
+          )
+        : Promise.resolve([]),
+    ]);
 
     const versesByPoem = new Map<number, PoemDetail['verses']>();
     for (const v of allVerses) {
