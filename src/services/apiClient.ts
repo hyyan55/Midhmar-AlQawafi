@@ -22,6 +22,12 @@ import type {
   SessionResult,
   Theme,
 } from '../../packages/shared/src/index.ts';
+import {
+  EmailAuthProvider,
+  firebaseAuth,
+  reauthenticateWithCredential,
+  updatePassword,
+} from './firebase.ts';
 
 const API_BASE = (import.meta.env.VITE_API_BASE_URL as string | undefined) || '';
 
@@ -146,6 +152,39 @@ async function request<T>(
 }
 
 export const apiClient = {
+  async firebaseRegister(payload: {
+    idToken: string;
+    displayName?: string;
+    username?: string;
+    timezone?: string;
+    guestMigration?: GuestProgressSnapshot;
+  }) {
+    const body = {
+      ...payload,
+      guestMigration: payload.guestMigration
+        ? {
+            guestId: payload.guestMigration.guestId,
+            stats: payload.guestMigration.stats,
+            history: payload.guestMigration.history,
+          }
+        : undefined,
+    };
+    const res = await request<{ message: string }>('/api/auth/firebase/register', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return res.data;
+  },
+
+  async firebaseSession(idToken: string) {
+    const res = await request<{ accessToken: string; user: AuthSessionUser }>('/api/auth/firebase/session', {
+      method: 'POST',
+      body: JSON.stringify({ idToken }),
+    });
+    inMemoryAccessToken = res.data.accessToken;
+    return res.data;
+  },
+
   async checkBackendHealth(): Promise<{
     available: boolean;
     databaseConfigured: boolean;
@@ -275,11 +314,12 @@ export const apiClient = {
   },
 
   async changePassword(currentPassword: string, newPassword: string) {
-    const res = await request<{ message: string }>('/api/auth/change-password', {
-      method: 'POST',
-      body: JSON.stringify({ currentPassword, newPassword }),
-    });
-    return res.data;
+    const user = firebaseAuth.currentUser;
+    if (!user || !user.email) throw new ApiClientError('UNAUTHORIZED', 'يرجى تسجيل الدخول مجدداً', 401);
+    const credential = EmailAuthProvider.credential(user.email, currentPassword);
+    await reauthenticateWithCredential(user, credential);
+    await updatePassword(user, newPassword);
+    return { message: 'تم تغيير كلمة المرور بنجاح' };
   },
 
   async deleteAccount() {

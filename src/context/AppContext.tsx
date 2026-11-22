@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import type { UserCredential } from 'firebase/auth';
 import {
   DEFAULT_APP_NAME,
   GAME_MODES_META,
@@ -18,6 +19,14 @@ import {
   type ThemeMode,
 } from '../../packages/shared/src/index.ts';
 import { apiClient, setAccessToken } from '../services/apiClient.ts';
+import {
+  createUserWithEmailAndPassword,
+  firebaseAuth,
+  sendEmailVerification,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  updateProfile as updateFirebaseProfile,
+} from '../services/firebase.ts';
 import {
   createDefaultGuestProgress,
   createDefaultSettings,
@@ -648,7 +657,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const login = useCallback(
     async (email: string, password: string) => {
-      const data = await apiClient.login({ email, password });
+      let credential: UserCredential;
+      try {
+        credential = await signInWithEmailAndPassword(firebaseAuth, email.trim(), password);
+      } catch (error) {
+        const code = (error as { code?: string })?.code;
+        if (code !== 'auth/user-not-found' && code !== 'auth/invalid-credential') {
+          if (code === 'auth/wrong-password' || code === 'auth/invalid-credential') {
+            throw new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
+          }
+          throw error;
+        }
+
+        // Upgrade an older PostgreSQL account by creating its Firebase identity.
+        try {
+          credential = await createUserWithEmailAndPassword(firebaseAuth, email.trim(), password);
+          await sendEmailVerification(credential.user);
+          const idToken = await credential.user.getIdToken();
+          await apiClient.firebaseRegister({ idToken });
+          await firebaseSignOut(firebaseAuth);
+          throw new Error('تم ربط حسابك السابق. أرسلنا رابط تأكيد إلى بريدك؛ أكّده ثم سجّل الدخول مجدداً.');
+        } catch (upgradeError) {
+          if (upgradeError instanceof Error && upgradeError.message.includes('تم ربط حسابك السابق')) {
+            throw upgradeError;
+          }
+          await firebaseSignOut(firebaseAuth).catch(() => undefined);
+          if ((upgradeError as { code?: string })?.code === 'auth/email-already-in-use') {
+            throw new Error('كلمة المرور غير صحيحة.');
+          }
+          throw new Error('لم نعثر على حساب سابق بهذا البريد. إذا كنت مستخدماً جديداً، اختر «حساب جديد».');
+        }
+      }
+
+      await credential.user.reload();
+      if (!credential.user.emailVerified) {
+        await sendEmailVerification(credential.user);
+        await firebaseSignOut(firebaseAuth);
+        throw new Error('بريدك غير مؤكّد. أرسلنا رابط تأكيد جديد؛ افتحه ثم سجّل الدخول.');
+      }
+
+      const idToken = await credential.user.getIdToken(true);
+      const data = await apiClient.firebaseSession(idToken);
       setUser(data.user);
       setSettings(data.user.settings);
       applyThemeClass(data.user.settings.theme);
@@ -666,14 +715,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       password: string;
       migrateGuestProgress: boolean;
     }) => {
-      const data = await apiClient.register({
+      let credential: UserCredential;
+      try {
+        credential = await createUserWithEmailAndPassword(firebaseAuth, payload.email.trim(), payload.password);
+      } catch (error) {
+        if ((error as { code?: string })?.code !== 'auth/email-already-in-use') throw error;
+        credential = await signInWithEmailAndPassword(firebaseAuth, payload.email.trim(), payload.password);
+      }
+
+      if (credential.user.displayName !== payload.displayName) {
+        await updateFirebaseProfile(credential.user, { displayName: payload.displayName });
+      }
+      await credential.user.reload();
+      if (!credential.user.emailVerified) await sendEmailVerification(credential.user);
+
+      const idToken = await credential.user.getIdToken(true);
+      const data = await apiClient.firebaseRegister({
+        idToken,
         displayName: payload.displayName,
         username: payload.username,
-        email: payload.email,
-        password: payload.password,
         timezone: getUserTimezone(),
         guestMigration: payload.migrateGuestProgress && guest.stats.gamesPlayed > 0 ? guest : undefined,
       });
+      await firebaseSignOut(firebaseAuth);
       showNotice('success', data.message);
     },
     [guest, showNotice]
@@ -685,6 +749,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       setAccessToken(null);
     }
+    await firebaseSignOut(firebaseAuth).catch(() => undefined);
     setUser(null);
     showNotice('info', 'تم تسجيل الخروج. يمكنك الاستمرار في اللعب كزائر.');
     setScreen('home');

@@ -22,6 +22,19 @@ import type { Server } from 'node:http';
 const testDbState = vi.hoisted(() => ({ path: '' }));
 
 // Keep API tests independent from external SMTP availability.
+vi.mock('../server/src/services/firebaseAdmin.ts', () => ({
+  verifyFirebaseIdToken: vi.fn(async (idToken: string) => {
+    if (idToken === 'firebase-test-unverified') {
+      return { uid: 'firebase-test-uid', email: 'firebase-user@example.com', email_verified: false };
+    }
+    if (idToken === 'firebase-test-verified') {
+      return { uid: 'firebase-test-uid', email: 'firebase-user@example.com', email_verified: true };
+    }
+    throw new Error('Invalid Firebase token');
+  }),
+  deleteFirebaseUser: vi.fn().mockResolvedValue(undefined),
+}));
+
 vi.mock('../server/src/services/email.ts', () => ({
   sendEmail: vi.fn().mockResolvedValue(undefined),
 }));
@@ -190,7 +203,28 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     });
 
     expect(res.status).toBe(201);
-    const body = (await res.json()) as {
+    const registration = (await res.json()) as { success: boolean; data: { message: string } };
+    expect(registration.success).toBe(true);
+
+    const registeredUser = await getDb(testDbPath).queryOne<{
+      id: string;
+      password_hash: string;
+      is_active: number | boolean;
+    }>('SELECT id, password_hash, is_active FROM users WHERE email = $1', ['zuhayr@example.com']);
+    expect(registeredUser).toBeTruthy();
+    expect(registeredUser?.password_hash).not.toBe('StrongPassword123');
+    expect(Number(registeredUser?.is_active)).toBe(0);
+
+    // Simulate the email-verification side effect; outbound SMTP is mocked in this suite.
+    await getDb(testDbPath).execute('UPDATE users SET is_active = $1 WHERE id = $2', [true, registeredUser!.id]);
+
+    const login = await fetch(`${baseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: 'zuhayr@example.com', password: 'StrongPassword123' }),
+    });
+    expect(login.status).toBe(200);
+    const body = (await login.json()) as {
       success: boolean;
       data: { accessToken: string; user: { profile: { userId: string }; stats: { totalXp: number } } };
     };
@@ -289,6 +323,48 @@ describe('REST API Auth, Gameplay, Anti-Duplicate Guards & Offline Sync', () => 
     };
     expect(completeBody.data.totalQuestions).toBe(5);
     expect(completeBody.data.reviews).toHaveLength(5);
+  });
+
+  it('creates a Firebase account and issues an app session only after email verification', async () => {
+    const registration = await fetch(`${baseUrl}/api/auth/firebase/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        idToken: 'firebase-test-unverified',
+        displayName: 'Firebase Tester',
+        username: 'firebase_tester',
+        timezone: 'UTC',
+      }),
+    });
+    expect(registration.status).toBe(201);
+
+    const pendingUser = await getDb(testDbPath).queryOne<{
+      firebase_uid: string;
+      is_active: number | boolean;
+    }>('SELECT firebase_uid, is_active FROM users WHERE email = $1', ['firebase-user@example.com']);
+    expect(pendingUser?.firebase_uid).toBe('firebase-test-uid');
+    expect(Number(pendingUser?.is_active)).toBe(0);
+
+    const unverifiedSession = await fetch(`${baseUrl}/api/auth/firebase/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: 'firebase-test-unverified' }),
+    });
+    expect(unverifiedSession.status).toBe(403);
+
+    const verifiedSession = await fetch(`${baseUrl}/api/auth/firebase/session`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken: 'firebase-test-verified' }),
+    });
+    expect(verifiedSession.status).toBe(200);
+    const sessionBody = (await verifiedSession.json()) as {
+      success: boolean;
+      data: { accessToken: string; user: { profile: { username: string } } };
+    };
+    expect(sessionBody.success).toBe(true);
+    expect(sessionBody.data.accessToken).toBeTruthy();
+    expect(sessionBody.data.user.profile.username).toBe('firebase_tester');
   });
 
   it('prevents duplicate offline sync submissions via operationId idempotency', async () => {

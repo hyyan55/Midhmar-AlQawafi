@@ -283,6 +283,7 @@ CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
   email TEXT NOT NULL UNIQUE,
   password_hash TEXT NOT NULL,
+  firebase_uid TEXT UNIQUE,
   is_active INTEGER NOT NULL DEFAULT 1,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
@@ -478,11 +479,15 @@ export async function runMigrations(customSqlitePath?: string): Promise<void> {
   if (db.dialect === 'sqlite') {
     const sqlite = getSqliteDb(customSqlitePath);
     sqlite.exec(SQLITE_SCHEMA_SQL);
+    try { sqlite.exec('ALTER TABLE users ADD COLUMN firebase_uid TEXT'); } catch { /* Column already exists. */ }
+    sqlite.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL');
     return;
   }
   const schemaPath = path.resolve(process.cwd(), 'database/schema/001_initial.sql');
   const pgSchemaSql = fs.readFileSync(schemaPath, 'utf8');
   await getPgPool().query(pgSchemaSql);
+  await getPgPool().query('ALTER TABLE users ADD COLUMN IF NOT EXISTS firebase_uid TEXT');
+  await getPgPool().query('CREATE UNIQUE INDEX IF NOT EXISTS idx_users_firebase_uid ON users(firebase_uid) WHERE firebase_uid IS NOT NULL');
 }
 
 export async function seedAuthenticPoetry(customSqlitePath?: string): Promise<void> {
