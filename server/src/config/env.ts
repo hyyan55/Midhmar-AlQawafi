@@ -5,14 +5,11 @@ dotenv.config();
 
 const ephemeralAccessSecret = crypto.randomBytes(32).toString('hex');
 const ephemeralRefreshSecret = crypto.randomBytes(32).toString('hex');
-
 const hasCustomJwtSecrets = Boolean(
-  process.env.JWT_ACCESS_SECRET &&
-    process.env.JWT_REFRESH_SECRET &&
-    !process.env.JWT_ACCESS_SECRET.startsWith('REPLACE_') &&
-    !process.env.JWT_REFRESH_SECRET.startsWith('REPLACE_')
+  process.env.JWT_ACCESS_SECRET && process.env.JWT_REFRESH_SECRET &&
+  !process.env.JWT_ACCESS_SECRET.startsWith('REPLACE_') &&
+  !process.env.JWT_REFRESH_SECRET.startsWith('REPLACE_')
 );
-
 const hasPostgresConfig = Boolean(process.env.DATABASE_URL || process.env.PGHOST);
 
 export const env = {
@@ -22,18 +19,9 @@ export const env = {
   port: Number(process.env.API_PORT || process.env.PORT || 4000),
   serveSpa: process.env.SERVE_SPA === 'true',
   appUrl: process.env.APP_URL || 'http://localhost:3000',
-  allowedOrigins: (process.env.ALLOWED_ORIGINS || '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean),
-  jwtAccessSecret:
-    process.env.JWT_ACCESS_SECRET && !process.env.JWT_ACCESS_SECRET.startsWith('REPLACE_')
-      ? process.env.JWT_ACCESS_SECRET
-      : ephemeralAccessSecret,
-  jwtRefreshSecret:
-    process.env.JWT_REFRESH_SECRET && !process.env.JWT_REFRESH_SECRET.startsWith('REPLACE_')
-      ? process.env.JWT_REFRESH_SECRET
-      : ephemeralRefreshSecret,
+  allowedOrigins: (process.env.ALLOWED_ORIGINS || '').split(',').map((origin) => origin.trim()).filter(Boolean),
+  jwtAccessSecret: process.env.JWT_ACCESS_SECRET && !process.env.JWT_ACCESS_SECRET.startsWith('REPLACE_') ? process.env.JWT_ACCESS_SECRET : ephemeralAccessSecret,
+  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET && !process.env.JWT_REFRESH_SECRET.startsWith('REPLACE_') ? process.env.JWT_REFRESH_SECRET : ephemeralRefreshSecret,
   hasCustomJwtSecrets,
   hasPostgresConfig,
   accessTokenTtl: process.env.ACCESS_TOKEN_TTL || '15m',
@@ -51,4 +39,7 @@ export const env = {
   smtpUser: process.env.SMTP_USER || '',
   smtpPass: process.env.SMTP_PASS || '',
   emailFrom: process.env.EMAIL_FROM || process.env.SMTP_USER || '',
+  cloudinaryCloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
+  cloudinaryApiKey: process.env.CLOUDINARY_API_KEY || '',
+  cloudinaryApiSecret: process.env.CLOUDINARY_API_SECRET || '',
 };
