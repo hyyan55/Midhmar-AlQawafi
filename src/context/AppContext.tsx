@@ -749,6 +749,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     } catch {
       setAccessToken(null);
     }
+    await firebaseSignOut(firebaseAuth).catch(() => undefined);
     setUser(null);
     showNotice('info', 'تم تسجيل الخروج. يمكنك الاستمرار في اللعب كزائر.');
     setScreen('home');
