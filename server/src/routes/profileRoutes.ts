@@ -45,9 +45,10 @@ router.patch(
       display_name: string;
       username: string;
       avatar_id: string;
+      avatar_url: string | null;
       bio: string;
       timezone: string;
-    }>('SELECT display_name, username, avatar_id, bio, timezone FROM user_profiles WHERE user_id = $1', [
+    }>('SELECT display_name, username, avatar_id, avatar_url, bio, timezone FROM user_profiles WHERE user_id = $1', [
       userId,
     ]);
     if (!current) {
@@ -56,12 +57,13 @@ router.patch(
 
     await db.execute(
       `UPDATE user_profiles
-       SET display_name = $1, username = $2, avatar_id = $3, bio = $4, timezone = $5, updated_at = $6
-       WHERE user_id = $7`,
+       SET display_name = $1, username = $2, avatar_id = $3, avatar_url = $4, bio = $5, timezone = $6, updated_at = $7
+       WHERE user_id = $8`,
       [
         parsed.displayName ?? current.display_name,
         parsed.username ?? current.username,
         parsed.avatarId ?? current.avatar_id,
+        parsed.avatarUrl === undefined ? current.avatar_url : parsed.avatarUrl,
         parsed.bio ?? current.bio,
         parsed.timezone ?? current.timezone,
         new Date().toISOString(),
